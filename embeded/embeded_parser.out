@@ -1,0 +1,4990 @@
+Terminals unused in grammar
+
+   LANGUAGE
+   PROCEDURE
+   SQLCODE
+
+
+语法
+
+    0 $accept: sql_list $end
+
+    1 sql_list: sql ';'
+    2         | sql_list sql ';'
+
+    3 sql: schema
+
+    4 schema: CREATE SCHEMA AUTHORIZATION user opt_schema_element_list
+
+    5 opt_schema_element_list: /* 空 */
+    6                        | schema_element_list
+
+    7 schema_element_list: schema_element
+    8                    | schema_element_list schema_element
+
+    9 schema_element: base_table_def
+   10               | view_def
+   11               | privilege_def
+
+   12 base_table_def: CREATE TABLE table '(' base_table_element_commalist ')'
+
+   13 base_table_element_commalist: base_table_element
+   14                             | base_table_element_commalist ',' base_table_element
+
+   15 base_table_element: column_def
+   16                   | table_constraint_def
+
+   17 column_def: column data_type column_def_opt_list
+
+   18 column_def_opt_list: /* 空 */
+   19                    | column_def_opt_list column_def_opt
+
+   20 column_def_opt: NOT NULLX
+   21               | NOT NULLX UNIQUE
+   22               | NOT NULLX PRIMARY KEY
+   23               | DEFAULT literal
+   24               | DEFAULT NULLX
+   25               | DEFAULT USER
+   26               | CHECK '(' search_condition ')'
+   27               | REFERENCES table
+   28               | REFERENCES table '(' column_commalist ')'
+
+   29 table_constraint_def: UNIQUE '(' column_commalist ')'
+   30                     | PRIMARY KEY '(' column_commalist ')'
+   31                     | FOREIGN KEY '(' column_commalist ')' REFERENCES table
+   32                     | FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')'
+   33                     | CHECK '(' search_condition ')'
+
+   34 column_commalist: column
+   35                 | column_commalist ',' column
+
+   36 view_def: CREATE VIEW table opt_column_commalist AS query_spec opt_with_check_option
+
+   37 opt_with_check_option: /* 空 */
+   38                      | WITH CHECK OPTION
+
+   39 opt_column_commalist: /* 空 */
+   40                     | '(' column_commalist ')'
+
+   41 privilege_def: GRANT privileges ON table TO grantee_commalist opt_with_grant_option
+
+   42 opt_with_grant_option: /* 空 */
+   43                      | WITH GRANT OPTION
+
+   44 privileges: ALL PRIVILEGES
+   45           | ALL
+   46           | operation_commalist
+
+   47 operation_commalist: operation
+   48                    | operation_commalist ',' operation
+
+   49 operation: SELECT
+   50          | INSERT
+   51          | DELETE
+   52          | UPDATE opt_column_commalist
+   53          | REFERENCES opt_column_commalist
+
+   54 grantee_commalist: grantee
+   55                  | grantee_commalist ',' grantee
+
+   56 grantee: PUBLIC
+   57        | user
+
+   58 sql: cursor_def
+
+   59 cursor_def: DECLARE cursor CURSOR FOR query_exp opt_order_by_clause
+
+   60 opt_order_by_clause: /* 空 */
+   61                    | ORDER BY ordering_spec_commalist
+
+   62 ordering_spec_commalist: ordering_spec
+   63                        | ordering_spec_commalist ',' ordering_spec
+
+   64 ordering_spec: INTNUM opt_asc_desc
+   65              | column_ref opt_asc_desc
+
+   66 opt_asc_desc: /* 空 */
+   67             | ASC
+   68             | DESC
+
+   69 sql: manipulative_statement
+
+   70 manipulative_statement: close_statement
+   71                       | commit_statement
+   72                       | delete_statement_positioned
+   73                       | delete_statement_searched
+   74                       | fetch_statement
+   75                       | insert_statement
+   76                       | open_statement
+   77                       | rollback_statement
+   78                       | select_statement
+   79                       | update_statement_positioned
+   80                       | update_statement_searched
+
+   81 close_statement: CLOSE cursor
+
+   82 commit_statement: COMMIT WORK
+
+   83 delete_statement_positioned: DELETE FROM table WHERE CURRENT OF cursor
+
+   84 delete_statement_searched: DELETE FROM table opt_where_clause
+
+   85 fetch_statement: FETCH cursor INTO target_commalist
+
+   86 insert_statement: INSERT INTO table opt_column_commalist values_or_query_spec
+
+   87 values_or_query_spec: VALUES '(' insert_atom_commalist ')'
+   88                     | query_spec
+
+   89 insert_atom_commalist: insert_atom
+   90                      | insert_atom_commalist ',' insert_atom
+
+   91 insert_atom: atom
+   92            | NULLX
+
+   93 open_statement: OPEN cursor
+
+   94 rollback_statement: ROLLBACK WORK
+
+   95 select_statement: SELECT opt_all_distinct selection INTO target_commalist table_exp
+
+   96 opt_all_distinct: /* 空 */
+   97                 | ALL
+   98                 | DISTINCT
+
+   99 update_statement_positioned: UPDATE table SET assignment_commalist WHERE CURRENT OF cursor
+
+  100 assignment_commalist: /* 空 */
+  101                     | assignment
+  102                     | assignment_commalist ',' assignment
+
+  103 assignment: column '=' scalar_exp
+  104           | column '=' NULLX
+
+  105 update_statement_searched: UPDATE table SET assignment_commalist opt_where_clause
+
+  106 target_commalist: target
+  107                 | target_commalist ',' target
+
+  108 target: parameter_ref
+
+  109 opt_where_clause: /* 空 */
+  110                 | where_clause
+
+  111 query_exp: query_term
+  112          | query_exp UNION query_term
+  113          | query_exp UNION ALL query_term
+
+  114 query_term: query_spec
+  115           | '(' query_exp ')'
+
+  116 query_spec: SELECT opt_all_distinct selection table_exp
+
+  117 selection: scalar_exp_commalist
+  118          | '*'
+
+  119 table_exp: from_clause opt_where_clause opt_group_by_clause opt_having_clause
+
+  120 from_clause: FROM table_ref_commalist
+
+  121 table_ref_commalist: table_ref
+  122                    | table_ref_commalist ',' table_ref
+
+  123 table_ref: table
+  124          | table range_variable
+
+  125 where_clause: WHERE search_condition
+
+  126 opt_group_by_clause: /* 空 */
+  127                    | GROUP BY column_ref_commalist
+
+  128 column_ref_commalist: column_ref
+  129                     | column_ref_commalist ',' column_ref
+
+  130 opt_having_clause: /* 空 */
+  131                  | HAVING search_condition
+
+  132 search_condition: /* 空 */
+  133                 | search_condition OR search_condition
+  134                 | search_condition AND search_condition
+  135                 | NOT search_condition
+  136                 | '(' search_condition ')'
+  137                 | predicate
+
+  138 predicate: comparison_predicate
+  139          | between_predicate
+  140          | like_predicate
+  141          | test_for_null
+  142          | in_predicate
+  143          | all_or_any_predicate
+  144          | existence_test
+
+  145 comparison_predicate: scalar_exp COMPARISON scalar_exp
+  146                     | scalar_exp COMPARISON subquery
+
+  147 between_predicate: scalar_exp NOT BETWEEN scalar_exp AND scalar_exp
+  148                  | scalar_exp BETWEEN scalar_exp AND scalar_exp
+
+  149 like_predicate: scalar_exp NOT LIKE atom opt_escape
+  150               | scalar_exp LIKE atom opt_escape
+
+  151 opt_escape: /* 空 */
+  152           | ESCAPE atom
+
+  153 test_for_null: column_ref IS NOT NULLX
+  154              | column_ref IS NULLX
+
+  155 in_predicate: scalar_exp NOT IN '(' subquery ')'
+  156             | scalar_exp IN '(' subquery ')'
+  157             | scalar_exp NOT IN '(' atom_commalist ')'
+  158             | scalar_exp IN '(' atom_commalist ')'
+
+  159 atom_commalist: atom
+  160               | atom_commalist ',' atom
+
+  161 all_or_any_predicate: scalar_exp COMPARISON any_all_some subquery
+
+  162 any_all_some: ANY
+  163             | ALL
+  164             | SOME
+
+  165 existence_test: EXISTS subquery
+
+  166 subquery: '(' SELECT opt_all_distinct selection table_exp ')'
+
+  167 scalar_exp: scalar_exp '+' scalar_exp
+  168           | scalar_exp '-' scalar_exp
+  169           | scalar_exp '*' scalar_exp
+  170           | scalar_exp '/' scalar_exp
+  171           | '+' scalar_exp
+  172           | '-' scalar_exp
+  173           | atom
+  174           | column_ref
+  175           | function_ref
+  176           | '(' scalar_exp ')'
+
+  177 scalar_exp_commalist: scalar_exp
+  178                     | scalar_exp_commalist ',' scalar_exp
+
+  179 atom: parameter_ref
+  180     | literal
+  181     | USER
+
+  182 parameter_ref: parameter
+  183              | parameter parameter
+  184              | parameter INDICATOR parameter
+
+  185 function_ref: AMMSC '(' '*' ')'
+  186             | AMMSC '(' DISTINCT column_ref ')'
+  187             | AMMSC '(' ALL scalar_exp ')'
+  188             | AMMSC '(' scalar_exp ')'
+
+  189 literal: STRING
+  190        | INTNUM
+  191        | APPROXNUM
+
+  192 table: NAME
+  193      | NAME '.' NAME
+
+  194 column_ref: NAME
+  195           | NAME '.' NAME
+  196           | NAME '.' NAME '.' NAME
+
+  197 data_type: CHARACTER
+  198          | CHARACTER '(' INTNUM ')'
+  199          | NUMERIC
+  200          | NUMERIC '(' INTNUM ')'
+  201          | NUMERIC '(' INTNUM ',' INTNUM ')'
+  202          | DECIMAL
+  203          | DECIMAL '(' INTNUM ')'
+  204          | DECIMAL '(' INTNUM ',' INTNUM ')'
+  205          | INTEGER
+  206          | SMALLINT
+  207          | FLOAT
+  208          | FLOAT '(' INTNUM ')'
+  209          | REAL
+  210          | DOUBLE PRECISION
+
+  211 column: NAME
+
+  212 cursor: NAME
+
+  213 parameter: PARAMETER
+
+  214 range_variable: NAME
+
+  215 user: NAME
+
+  216 sql: WHENEVER NOT FOUND when_action
+  217    | WHENEVER SQLERROR when_action
+
+  218 when_action: GOTO NAME
+  219            | CONTINUE
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'(' (40) 12 26 28 29 30 31 32 33 40 87 115 136 155 156 157 158 166
+    176 185 186 187 188 198 200 201 203 204 208
+')' (41) 12 26 28 29 30 31 32 33 40 87 115 136 155 156 157 158 166
+    176 185 186 187 188 198 200 201 203 204 208
+'*' (42) 118 169 185
+'+' (43) 167 171
+',' (44) 14 35 48 55 63 90 102 107 122 129 160 178 201 204
+'-' (45) 168 172
+'.' (46) 193 195 196
+'/' (47) 170
+';' (59) 1 2
+'=' (61) 103 104
+error (256)
+NAME (258) 192 193 194 195 196 211 212 214 215 218
+STRING (259) 189
+INTNUM (260) 64 190 198 200 201 203 204 208
+APPROXNUM (261) 191
+OR (262) 133
+AND (263) 134 147 148
+NOT (264) 20 21 22 135 147 149 153 155 157 216
+COMPARISON (265) 145 146 161
+UMINUS (266)
+ALL (267) 44 45 97 113 163 187
+AMMSC (268) 185 186 187 188
+ANY (269) 162
+AS (270) 36
+ASC (271) 67
+AUTHORIZATION (272) 4
+BETWEEN (273) 147 148
+BY (274) 61 127
+CHARACTER (275) 197 198
+CHECK (276) 26 33 38
+CLOSE (277) 81
+COMMIT (278) 82
+CONTINUE (279) 219
+CREATE (280) 4 12 36
+CURRENT (281) 83 99
+CURSOR (282) 59
+DECIMAL (283) 202 203 204
+DECLARE (284) 59
+DEFAULT (285) 23 24 25
+DELETE (286) 51 83 84
+DESC (287) 68
+DISTINCT (288) 98 186
+DOUBLE (289) 210
+ESCAPE (290) 152
+EXISTS (291) 165
+FETCH (292) 85
+FLOAT (293) 207 208
+FOR (294) 59
+FOREIGN (295) 31 32
+FOUND (296) 216
+FROM (297) 83 84 120
+GOTO (298) 218
+GRANT (299) 41 43
+GROUP (300) 127
+HAVING (301) 131
+IN (302) 155 156 157 158
+INDICATOR (303) 184
+INSERT (304) 50 86
+INTEGER (305) 205
+INTO (306) 85 86 95
+IS (307) 153 154
+KEY (308) 22 30 31 32
+LANGUAGE (309)
+LIKE (310) 149 150
+NULLX (311) 20 21 22 24 92 104 153 154
+NUMERIC (312) 199 200 201
+OF (313) 83 99
+ON (314) 41
+OPEN (315) 93
+OPTION (316) 38 43
+ORDER (317) 61
+PARAMETER (318) 213
+PRECISION (319) 210
+PRIMARY (320) 22 30
+PRIVILEGES (321) 44
+PROCEDURE (322)
+PUBLIC (323) 56
+REAL (324) 209
+REFERENCES (325) 27 28 31 32 53
+ROLLBACK (326) 94
+SCHEMA (327) 4
+SELECT (328) 49 95 116 166
+SET (329) 99 105
+SMALLINT (330) 206
+SOME (331) 164
+SQLCODE (332)
+SQLERROR (333) 217
+TABLE (334) 12
+TO (335) 41
+UNION (336) 112 113
+UNIQUE (337) 21 29
+UPDATE (338) 52 99 105
+USER (339) 25 181
+VALUES (340) 87
+VIEW (341) 36
+WHENEVER (342) 216 217
+WHERE (343) 83 99 125
+WITH (344) 38 43
+WORK (345) 82 94
+
+
+Nonterminals, with rules where they appear
+
+$accept (101)
+    左： 0
+sql_list (102)
+    左： 1 2, 右： 0 2
+sql (103)
+    左： 3 58 69 216 217, 右： 1 2
+schema (104)
+    左： 4, 右： 3
+opt_schema_element_list (105)
+    左： 5 6, 右： 4
+schema_element_list (106)
+    左： 7 8, 右： 6 8
+schema_element (107)
+    左： 9 10 11, 右： 7 8
+base_table_def (108)
+    左： 12, 右： 9
+base_table_element_commalist (109)
+    左： 13 14, 右： 12 14
+base_table_element (110)
+    左： 15 16, 右： 13 14
+column_def (111)
+    左： 17, 右： 15
+column_def_opt_list (112)
+    左： 18 19, 右： 17 19
+column_def_opt (113)
+    左： 20 21 22 23 24 25 26 27 28, 右： 19
+table_constraint_def (114)
+    左： 29 30 31 32 33, 右： 16
+column_commalist (115)
+    左： 34 35, 右： 28 29 30 31 32 35 40
+view_def (116)
+    左： 36, 右： 10
+opt_with_check_option (117)
+    左： 37 38, 右： 36
+opt_column_commalist (118)
+    左： 39 40, 右： 36 52 53 86
+privilege_def (119)
+    左： 41, 右： 11
+opt_with_grant_option (120)
+    左： 42 43, 右： 41
+privileges (121)
+    左： 44 45 46, 右： 41
+operation_commalist (122)
+    左： 47 48, 右： 46 48
+operation (123)
+    左： 49 50 51 52 53, 右： 47 48
+grantee_commalist (124)
+    左： 54 55, 右： 41 55
+grantee (125)
+    左： 56 57, 右： 54 55
+cursor_def (126)
+    左： 59, 右： 58
+opt_order_by_clause (127)
+    左： 60 61, 右： 59
+ordering_spec_commalist (128)
+    左： 62 63, 右： 61 63
+ordering_spec (129)
+    左： 64 65, 右： 62 63
+opt_asc_desc (130)
+    左： 66 67 68, 右： 64 65
+manipulative_statement (131)
+    左： 70 71 72 73 74 75 76 77 78 79 80, 右： 69
+close_statement (132)
+    左： 81, 右： 70
+commit_statement (133)
+    左： 82, 右： 71
+delete_statement_positioned (134)
+    左： 83, 右： 72
+delete_statement_searched (135)
+    左： 84, 右： 73
+fetch_statement (136)
+    左： 85, 右： 74
+insert_statement (137)
+    左： 86, 右： 75
+values_or_query_spec (138)
+    左： 87 88, 右： 86
+insert_atom_commalist (139)
+    左： 89 90, 右： 87 90
+insert_atom (140)
+    左： 91 92, 右： 89 90
+open_statement (141)
+    左： 93, 右： 76
+rollback_statement (142)
+    左： 94, 右： 77
+select_statement (143)
+    左： 95, 右： 78
+opt_all_distinct (144)
+    左： 96 97 98, 右： 95 116 166
+update_statement_positioned (145)
+    左： 99, 右： 79
+assignment_commalist (146)
+    左： 100 101 102, 右： 99 102 105
+assignment (147)
+    左： 103 104, 右： 101 102
+update_statement_searched (148)
+    左： 105, 右： 80
+target_commalist (149)
+    左： 106 107, 右： 85 95 107
+target (150)
+    左： 108, 右： 106 107
+opt_where_clause (151)
+    左： 109 110, 右： 84 105 119
+query_exp (152)
+    左： 111 112 113, 右： 59 112 113 115
+query_term (153)
+    左： 114 115, 右： 111 112 113
+query_spec (154)
+    左： 116, 右： 36 88 114
+selection (155)
+    左： 117 118, 右： 95 116 166
+table_exp (156)
+    左： 119, 右： 95 116 166
+from_clause (157)
+    左： 120, 右： 119
+table_ref_commalist (158)
+    左： 121 122, 右： 120 122
+table_ref (159)
+    左： 123 124, 右： 121 122
+where_clause (160)
+    左： 125, 右： 110
+opt_group_by_clause (161)
+    左： 126 127, 右： 119
+column_ref_commalist (162)
+    左： 128 129, 右： 127 129
+opt_having_clause (163)
+    左： 130 131, 右： 119
+search_condition (164)
+    左： 132 133 134 135 136 137, 右： 26 33 125 131 133 134 135
+    136
+predicate (165)
+    左： 138 139 140 141 142 143 144, 右： 137
+comparison_predicate (166)
+    左： 145 146, 右： 138
+between_predicate (167)
+    左： 147 148, 右： 139
+like_predicate (168)
+    左： 149 150, 右： 140
+opt_escape (169)
+    左： 151 152, 右： 149 150
+test_for_null (170)
+    左： 153 154, 右： 141
+in_predicate (171)
+    左： 155 156 157 158, 右： 142
+atom_commalist (172)
+    左： 159 160, 右： 157 158 160
+all_or_any_predicate (173)
+    左： 161, 右： 143
+any_all_some (174)
+    左： 162 163 164, 右： 161
+existence_test (175)
+    左： 165, 右： 144
+subquery (176)
+    左： 166, 右： 146 155 156 161 165
+scalar_exp (177)
+    左： 167 168 169 170 171 172 173 174 175 176, 右： 103 145
+    146 147 148 149 150 155 156 157 158 161 167 168 169 170 171 172
+    176 177 178 187 188
+scalar_exp_commalist (178)
+    左： 177 178, 右： 117 178
+atom (179)
+    左： 179 180 181, 右： 91 149 150 152 159 160 173
+parameter_ref (180)
+    左： 182 183 184, 右： 108 179
+function_ref (181)
+    左： 185 186 187 188, 右： 175
+literal (182)
+    左： 189 190 191, 右： 23 180
+table (183)
+    左： 192 193, 右： 12 27 28 31 32 36 41 83 84 86 99 105 123
+    124
+column_ref (184)
+    左： 194 195 196, 右： 65 128 129 153 154 174 186
+data_type (185)
+    左： 197 198 199 200 201 202 203 204 205 206 207 208 209 210,
+    右： 17
+column (186)
+    左： 211, 右： 17 34 35 103 104
+cursor (187)
+    左： 212, 右： 59 81 83 85 93 99
+parameter (188)
+    左： 213, 右： 182 183 184
+range_variable (189)
+    左： 214, 右： 124
+user (190)
+    左： 215, 右： 4 57
+when_action (191)
+    左： 218 219, 右： 216 217
+
+
+状态 0
+
+    0 $accept: . sql_list $end
+
+    CLOSE     shift, and go to state 1
+    COMMIT    shift, and go to state 2
+    CREATE    shift, and go to state 3
+    DECLARE   shift, and go to state 4
+    DELETE    shift, and go to state 5
+    FETCH     shift, and go to state 6
+    INSERT    shift, and go to state 7
+    OPEN      shift, and go to state 8
+    ROLLBACK  shift, and go to state 9
+    SELECT    shift, and go to state 10
+    UPDATE    shift, and go to state 11
+    WHENEVER  shift, and go to state 12
+
+    sql_list                     转到状态13
+    sql                          转到状态14
+    schema                       转到状态15
+    cursor_def                   转到状态16
+    manipulative_statement       转到状态17
+    close_statement              转到状态18
+    commit_statement             转到状态19
+    delete_statement_positioned  转到状态20
+    delete_statement_searched    转到状态21
+    fetch_statement              转到状态22
+    insert_statement             转到状态23
+    open_statement               转到状态24
+    rollback_statement           转到状态25
+    select_statement             转到状态26
+    update_statement_positioned  转到状态27
+    update_statement_searched    转到状态28
+
+
+状态 1
+
+   81 close_statement: CLOSE . cursor
+
+    NAME  shift, and go to state 29
+
+    cursor  转到状态30
+
+
+状态 2
+
+   82 commit_statement: COMMIT . WORK
+
+    WORK  shift, and go to state 31
+
+
+状态 3
+
+    4 schema: CREATE . SCHEMA AUTHORIZATION user opt_schema_element_list
+
+    SCHEMA  shift, and go to state 32
+
+
+状态 4
+
+   59 cursor_def: DECLARE . cursor CURSOR FOR query_exp opt_order_by_clause
+
+    NAME  shift, and go to state 29
+
+    cursor  转到状态33
+
+
+状态 5
+
+   83 delete_statement_positioned: DELETE . FROM table WHERE CURRENT OF cursor
+   84 delete_statement_searched: DELETE . FROM table opt_where_clause
+
+    FROM  shift, and go to state 34
+
+
+状态 6
+
+   85 fetch_statement: FETCH . cursor INTO target_commalist
+
+    NAME  shift, and go to state 29
+
+    cursor  转到状态35
+
+
+状态 7
+
+   86 insert_statement: INSERT . INTO table opt_column_commalist values_or_query_spec
+
+    INTO  shift, and go to state 36
+
+
+状态 8
+
+   93 open_statement: OPEN . cursor
+
+    NAME  shift, and go to state 29
+
+    cursor  转到状态37
+
+
+状态 9
+
+   94 rollback_statement: ROLLBACK . WORK
+
+    WORK  shift, and go to state 38
+
+
+状态 10
+
+   95 select_statement: SELECT . opt_all_distinct selection INTO target_commalist table_exp
+
+    ALL       shift, and go to state 39
+    DISTINCT  shift, and go to state 40
+
+    $default  reduce using rule 96 (opt_all_distinct)
+
+    opt_all_distinct  转到状态41
+
+
+状态 11
+
+   99 update_statement_positioned: UPDATE . table SET assignment_commalist WHERE CURRENT OF cursor
+  105 update_statement_searched: UPDATE . table SET assignment_commalist opt_where_clause
+
+    NAME  shift, and go to state 42
+
+    table  转到状态43
+
+
+状态 12
+
+  216 sql: WHENEVER . NOT FOUND when_action
+  217    | WHENEVER . SQLERROR when_action
+
+    NOT       shift, and go to state 44
+    SQLERROR  shift, and go to state 45
+
+
+状态 13
+
+    0 $accept: sql_list . $end
+    2 sql_list: sql_list . sql ';'
+
+    $end      shift, and go to state 46
+    CLOSE     shift, and go to state 1
+    COMMIT    shift, and go to state 2
+    CREATE    shift, and go to state 3
+    DECLARE   shift, and go to state 4
+    DELETE    shift, and go to state 5
+    FETCH     shift, and go to state 6
+    INSERT    shift, and go to state 7
+    OPEN      shift, and go to state 8
+    ROLLBACK  shift, and go to state 9
+    SELECT    shift, and go to state 10
+    UPDATE    shift, and go to state 11
+    WHENEVER  shift, and go to state 12
+
+    sql                          转到状态47
+    schema                       转到状态15
+    cursor_def                   转到状态16
+    manipulative_statement       转到状态17
+    close_statement              转到状态18
+    commit_statement             转到状态19
+    delete_statement_positioned  转到状态20
+    delete_statement_searched    转到状态21
+    fetch_statement              转到状态22
+    insert_statement             转到状态23
+    open_statement               转到状态24
+    rollback_statement           转到状态25
+    select_statement             转到状态26
+    update_statement_positioned  转到状态27
+    update_statement_searched    转到状态28
+
+
+状态 14
+
+    1 sql_list: sql . ';'
+
+    ';'  shift, and go to state 48
+
+
+状态 15
+
+    3 sql: schema .
+
+    $default  reduce using rule 3 (sql)
+
+
+状态 16
+
+   58 sql: cursor_def .
+
+    $default  reduce using rule 58 (sql)
+
+
+状态 17
+
+   69 sql: manipulative_statement .
+
+    $default  reduce using rule 69 (sql)
+
+
+状态 18
+
+   70 manipulative_statement: close_statement .
+
+    $default  reduce using rule 70 (manipulative_statement)
+
+
+状态 19
+
+   71 manipulative_statement: commit_statement .
+
+    $default  reduce using rule 71 (manipulative_statement)
+
+
+状态 20
+
+   72 manipulative_statement: delete_statement_positioned .
+
+    $default  reduce using rule 72 (manipulative_statement)
+
+
+状态 21
+
+   73 manipulative_statement: delete_statement_searched .
+
+    $default  reduce using rule 73 (manipulative_statement)
+
+
+状态 22
+
+   74 manipulative_statement: fetch_statement .
+
+    $default  reduce using rule 74 (manipulative_statement)
+
+
+状态 23
+
+   75 manipulative_statement: insert_statement .
+
+    $default  reduce using rule 75 (manipulative_statement)
+
+
+状态 24
+
+   76 manipulative_statement: open_statement .
+
+    $default  reduce using rule 76 (manipulative_statement)
+
+
+状态 25
+
+   77 manipulative_statement: rollback_statement .
+
+    $default  reduce using rule 77 (manipulative_statement)
+
+
+状态 26
+
+   78 manipulative_statement: select_statement .
+
+    $default  reduce using rule 78 (manipulative_statement)
+
+
+状态 27
+
+   79 manipulative_statement: update_statement_positioned .
+
+    $default  reduce using rule 79 (manipulative_statement)
+
+
+状态 28
+
+   80 manipulative_statement: update_statement_searched .
+
+    $default  reduce using rule 80 (manipulative_statement)
+
+
+状态 29
+
+  212 cursor: NAME .
+
+    $default  reduce using rule 212 (cursor)
+
+
+状态 30
+
+   81 close_statement: CLOSE cursor .
+
+    $default  reduce using rule 81 (close_statement)
+
+
+状态 31
+
+   82 commit_statement: COMMIT WORK .
+
+    $default  reduce using rule 82 (commit_statement)
+
+
+状态 32
+
+    4 schema: CREATE SCHEMA . AUTHORIZATION user opt_schema_element_list
+
+    AUTHORIZATION  shift, and go to state 49
+
+
+状态 33
+
+   59 cursor_def: DECLARE cursor . CURSOR FOR query_exp opt_order_by_clause
+
+    CURSOR  shift, and go to state 50
+
+
+状态 34
+
+   83 delete_statement_positioned: DELETE FROM . table WHERE CURRENT OF cursor
+   84 delete_statement_searched: DELETE FROM . table opt_where_clause
+
+    NAME  shift, and go to state 42
+
+    table  转到状态51
+
+
+状态 35
+
+   85 fetch_statement: FETCH cursor . INTO target_commalist
+
+    INTO  shift, and go to state 52
+
+
+状态 36
+
+   86 insert_statement: INSERT INTO . table opt_column_commalist values_or_query_spec
+
+    NAME  shift, and go to state 42
+
+    table  转到状态53
+
+
+状态 37
+
+   93 open_statement: OPEN cursor .
+
+    $default  reduce using rule 93 (open_statement)
+
+
+状态 38
+
+   94 rollback_statement: ROLLBACK WORK .
+
+    $default  reduce using rule 94 (rollback_statement)
+
+
+状态 39
+
+   97 opt_all_distinct: ALL .
+
+    $default  reduce using rule 97 (opt_all_distinct)
+
+
+状态 40
+
+   98 opt_all_distinct: DISTINCT .
+
+    $default  reduce using rule 98 (opt_all_distinct)
+
+
+状态 41
+
+   95 select_statement: SELECT opt_all_distinct . selection INTO target_commalist table_exp
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    '*'        shift, and go to state 60
+    AMMSC      shift, and go to state 61
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    selection             转到状态65
+    scalar_exp            转到状态66
+    scalar_exp_commalist  转到状态67
+    atom                  转到状态68
+    parameter_ref         转到状态69
+    function_ref          转到状态70
+    literal               转到状态71
+    column_ref            转到状态72
+    parameter             转到状态73
+
+
+状态 42
+
+  192 table: NAME .
+  193      | NAME . '.' NAME
+
+    '.'  shift, and go to state 74
+
+    $default  reduce using rule 192 (table)
+
+
+状态 43
+
+   99 update_statement_positioned: UPDATE table . SET assignment_commalist WHERE CURRENT OF cursor
+  105 update_statement_searched: UPDATE table . SET assignment_commalist opt_where_clause
+
+    SET  shift, and go to state 75
+
+
+状态 44
+
+  216 sql: WHENEVER NOT . FOUND when_action
+
+    FOUND  shift, and go to state 76
+
+
+状态 45
+
+  217 sql: WHENEVER SQLERROR . when_action
+
+    CONTINUE  shift, and go to state 77
+    GOTO      shift, and go to state 78
+
+    when_action  转到状态79
+
+
+状态 46
+
+    0 $accept: sql_list $end .
+
+    $default  接受
+
+
+状态 47
+
+    2 sql_list: sql_list sql . ';'
+
+    ';'  shift, and go to state 80
+
+
+状态 48
+
+    1 sql_list: sql ';' .
+
+    $default  reduce using rule 1 (sql_list)
+
+
+状态 49
+
+    4 schema: CREATE SCHEMA AUTHORIZATION . user opt_schema_element_list
+
+    NAME  shift, and go to state 81
+
+    user  转到状态82
+
+
+状态 50
+
+   59 cursor_def: DECLARE cursor CURSOR . FOR query_exp opt_order_by_clause
+
+    FOR  shift, and go to state 83
+
+
+状态 51
+
+   83 delete_statement_positioned: DELETE FROM table . WHERE CURRENT OF cursor
+   84 delete_statement_searched: DELETE FROM table . opt_where_clause
+
+    WHERE  shift, and go to state 84
+
+    $default  reduce using rule 109 (opt_where_clause)
+
+    opt_where_clause  转到状态85
+    where_clause      转到状态86
+
+
+状态 52
+
+   85 fetch_statement: FETCH cursor INTO . target_commalist
+
+    PARAMETER  shift, and go to state 62
+
+    target_commalist  转到状态87
+    target            转到状态88
+    parameter_ref     转到状态89
+    parameter         转到状态73
+
+
+状态 53
+
+   86 insert_statement: INSERT INTO table . opt_column_commalist values_or_query_spec
+
+    '('  shift, and go to state 90
+
+    $default  reduce using rule 39 (opt_column_commalist)
+
+    opt_column_commalist  转到状态91
+
+
+状态 54
+
+  194 column_ref: NAME .
+  195           | NAME . '.' NAME
+  196           | NAME . '.' NAME '.' NAME
+
+    '.'  shift, and go to state 92
+
+    $default  reduce using rule 194 (column_ref)
+
+
+状态 55
+
+  189 literal: STRING .
+
+    $default  reduce using rule 189 (literal)
+
+
+状态 56
+
+  190 literal: INTNUM .
+
+    $default  reduce using rule 190 (literal)
+
+
+状态 57
+
+  191 literal: APPROXNUM .
+
+    $default  reduce using rule 191 (literal)
+
+
+状态 58
+
+  171 scalar_exp: '+' . scalar_exp
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    scalar_exp     转到状态93
+    atom           转到状态68
+    parameter_ref  转到状态69
+    function_ref   转到状态70
+    literal        转到状态71
+    column_ref     转到状态72
+    parameter      转到状态73
+
+
+状态 59
+
+  172 scalar_exp: '-' . scalar_exp
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    scalar_exp     转到状态94
+    atom           转到状态68
+    parameter_ref  转到状态69
+    function_ref   转到状态70
+    literal        转到状态71
+    column_ref     转到状态72
+    parameter      转到状态73
+
+
+状态 60
+
+  118 selection: '*' .
+
+    $default  reduce using rule 118 (selection)
+
+
+状态 61
+
+  185 function_ref: AMMSC . '(' '*' ')'
+  186             | AMMSC . '(' DISTINCT column_ref ')'
+  187             | AMMSC . '(' ALL scalar_exp ')'
+  188             | AMMSC . '(' scalar_exp ')'
+
+    '('  shift, and go to state 95
+
+
+状态 62
+
+  213 parameter: PARAMETER .
+
+    $default  reduce using rule 213 (parameter)
+
+
+状态 63
+
+  181 atom: USER .
+
+    $default  reduce using rule 181 (atom)
+
+
+状态 64
+
+  176 scalar_exp: '(' . scalar_exp ')'
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    scalar_exp     转到状态96
+    atom           转到状态68
+    parameter_ref  转到状态69
+    function_ref   转到状态70
+    literal        转到状态71
+    column_ref     转到状态72
+    parameter      转到状态73
+
+
+状态 65
+
+   95 select_statement: SELECT opt_all_distinct selection . INTO target_commalist table_exp
+
+    INTO  shift, and go to state 97
+
+
+状态 66
+
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  168           | scalar_exp . '-' scalar_exp
+  169           | scalar_exp . '*' scalar_exp
+  170           | scalar_exp . '/' scalar_exp
+  177 scalar_exp_commalist: scalar_exp .
+
+    '+'  shift, and go to state 98
+    '-'  shift, and go to state 99
+    '*'  shift, and go to state 100
+    '/'  shift, and go to state 101
+
+    $default  reduce using rule 177 (scalar_exp_commalist)
+
+
+状态 67
+
+  117 selection: scalar_exp_commalist .
+  178 scalar_exp_commalist: scalar_exp_commalist . ',' scalar_exp
+
+    ','  shift, and go to state 102
+
+    $default  reduce using rule 117 (selection)
+
+
+状态 68
+
+  173 scalar_exp: atom .
+
+    $default  reduce using rule 173 (scalar_exp)
+
+
+状态 69
+
+  179 atom: parameter_ref .
+
+    $default  reduce using rule 179 (atom)
+
+
+状态 70
+
+  175 scalar_exp: function_ref .
+
+    $default  reduce using rule 175 (scalar_exp)
+
+
+状态 71
+
+  180 atom: literal .
+
+    $default  reduce using rule 180 (atom)
+
+
+状态 72
+
+  174 scalar_exp: column_ref .
+
+    $default  reduce using rule 174 (scalar_exp)
+
+
+状态 73
+
+  182 parameter_ref: parameter .
+  183              | parameter . parameter
+  184              | parameter . INDICATOR parameter
+
+    INDICATOR  shift, and go to state 103
+    PARAMETER  shift, and go to state 62
+
+    $default  reduce using rule 182 (parameter_ref)
+
+    parameter  转到状态104
+
+
+状态 74
+
+  193 table: NAME '.' . NAME
+
+    NAME  shift, and go to state 105
+
+
+状态 75
+
+   99 update_statement_positioned: UPDATE table SET . assignment_commalist WHERE CURRENT OF cursor
+  105 update_statement_searched: UPDATE table SET . assignment_commalist opt_where_clause
+
+    NAME  shift, and go to state 106
+
+    $default  reduce using rule 100 (assignment_commalist)
+
+    assignment_commalist  转到状态107
+    assignment            转到状态108
+    column                转到状态109
+
+
+状态 76
+
+  216 sql: WHENEVER NOT FOUND . when_action
+
+    CONTINUE  shift, and go to state 77
+    GOTO      shift, and go to state 78
+
+    when_action  转到状态110
+
+
+状态 77
+
+  219 when_action: CONTINUE .
+
+    $default  reduce using rule 219 (when_action)
+
+
+状态 78
+
+  218 when_action: GOTO . NAME
+
+    NAME  shift, and go to state 111
+
+
+状态 79
+
+  217 sql: WHENEVER SQLERROR when_action .
+
+    $default  reduce using rule 217 (sql)
+
+
+状态 80
+
+    2 sql_list: sql_list sql ';' .
+
+    $default  reduce using rule 2 (sql_list)
+
+
+状态 81
+
+  215 user: NAME .
+
+    $default  reduce using rule 215 (user)
+
+
+状态 82
+
+    4 schema: CREATE SCHEMA AUTHORIZATION user . opt_schema_element_list
+
+    CREATE  shift, and go to state 112
+    GRANT   shift, and go to state 113
+
+    $default  reduce using rule 5 (opt_schema_element_list)
+
+    opt_schema_element_list  转到状态114
+    schema_element_list      转到状态115
+    schema_element           转到状态116
+    base_table_def           转到状态117
+    view_def                 转到状态118
+    privilege_def            转到状态119
+
+
+状态 83
+
+   59 cursor_def: DECLARE cursor CURSOR FOR . query_exp opt_order_by_clause
+
+    SELECT  shift, and go to state 120
+    '('     shift, and go to state 121
+
+    query_exp   转到状态122
+    query_term  转到状态123
+    query_spec  转到状态124
+
+
+状态 84
+
+   83 delete_statement_positioned: DELETE FROM table WHERE . CURRENT OF cursor
+  125 where_clause: WHERE . search_condition
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    NOT        shift, and go to state 125
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    CURRENT    shift, and go to state 126
+    EXISTS     shift, and go to state 127
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 128
+
+    $default  reduce using rule 132 (search_condition)
+
+    search_condition      转到状态129
+    predicate             转到状态130
+    comparison_predicate  转到状态131
+    between_predicate     转到状态132
+    like_predicate        转到状态133
+    test_for_null         转到状态134
+    in_predicate          转到状态135
+    all_or_any_predicate  转到状态136
+    existence_test        转到状态137
+    scalar_exp            转到状态138
+    atom                  转到状态68
+    parameter_ref         转到状态69
+    function_ref          转到状态70
+    literal               转到状态71
+    column_ref            转到状态139
+    parameter             转到状态73
+
+
+状态 85
+
+   84 delete_statement_searched: DELETE FROM table opt_where_clause .
+
+    $default  reduce using rule 84 (delete_statement_searched)
+
+
+状态 86
+
+  110 opt_where_clause: where_clause .
+
+    $default  reduce using rule 110 (opt_where_clause)
+
+
+状态 87
+
+   85 fetch_statement: FETCH cursor INTO target_commalist .
+  107 target_commalist: target_commalist . ',' target
+
+    ','  shift, and go to state 140
+
+    $default  reduce using rule 85 (fetch_statement)
+
+
+状态 88
+
+  106 target_commalist: target .
+
+    $default  reduce using rule 106 (target_commalist)
+
+
+状态 89
+
+  108 target: parameter_ref .
+
+    $default  reduce using rule 108 (target)
+
+
+状态 90
+
+   40 opt_column_commalist: '(' . column_commalist ')'
+
+    NAME  shift, and go to state 106
+
+    column_commalist  转到状态141
+    column            转到状态142
+
+
+状态 91
+
+   86 insert_statement: INSERT INTO table opt_column_commalist . values_or_query_spec
+
+    SELECT  shift, and go to state 120
+    VALUES  shift, and go to state 143
+
+    values_or_query_spec  转到状态144
+    query_spec            转到状态145
+
+
+状态 92
+
+  195 column_ref: NAME '.' . NAME
+  196           | NAME '.' . NAME '.' NAME
+
+    NAME  shift, and go to state 146
+
+
+状态 93
+
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  168           | scalar_exp . '-' scalar_exp
+  169           | scalar_exp . '*' scalar_exp
+  170           | scalar_exp . '/' scalar_exp
+  171           | '+' scalar_exp .
+
+    $default  reduce using rule 171 (scalar_exp)
+
+
+状态 94
+
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  168           | scalar_exp . '-' scalar_exp
+  169           | scalar_exp . '*' scalar_exp
+  170           | scalar_exp . '/' scalar_exp
+  172           | '-' scalar_exp .
+
+    $default  reduce using rule 172 (scalar_exp)
+
+
+状态 95
+
+  185 function_ref: AMMSC '(' . '*' ')'
+  186             | AMMSC '(' . DISTINCT column_ref ')'
+  187             | AMMSC '(' . ALL scalar_exp ')'
+  188             | AMMSC '(' . scalar_exp ')'
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    '*'        shift, and go to state 147
+    ALL        shift, and go to state 148
+    AMMSC      shift, and go to state 61
+    DISTINCT   shift, and go to state 149
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    scalar_exp     转到状态150
+    atom           转到状态68
+    parameter_ref  转到状态69
+    function_ref   转到状态70
+    literal        转到状态71
+    column_ref     转到状态72
+    parameter      转到状态73
+
+
+状态 96
+
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  168           | scalar_exp . '-' scalar_exp
+  169           | scalar_exp . '*' scalar_exp
+  170           | scalar_exp . '/' scalar_exp
+  176           | '(' scalar_exp . ')'
+
+    '+'  shift, and go to state 98
+    '-'  shift, and go to state 99
+    '*'  shift, and go to state 100
+    '/'  shift, and go to state 101
+    ')'  shift, and go to state 151
+
+
+状态 97
+
+   95 select_statement: SELECT opt_all_distinct selection INTO . target_commalist table_exp
+
+    PARAMETER  shift, and go to state 62
+
+    target_commalist  转到状态152
+    target            转到状态88
+    parameter_ref     转到状态89
+    parameter         转到状态73
+
+
+状态 98
+
+  167 scalar_exp: scalar_exp '+' . scalar_exp
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    scalar_exp     转到状态153
+    atom           转到状态68
+    parameter_ref  转到状态69
+    function_ref   转到状态70
+    literal        转到状态71
+    column_ref     转到状态72
+    parameter      转到状态73
+
+
+状态 99
+
+  168 scalar_exp: scalar_exp '-' . scalar_exp
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    scalar_exp     转到状态154
+    atom           转到状态68
+    parameter_ref  转到状态69
+    function_ref   转到状态70
+    literal        转到状态71
+    column_ref     转到状态72
+    parameter      转到状态73
+
+
+状态 100
+
+  169 scalar_exp: scalar_exp '*' . scalar_exp
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    scalar_exp     转到状态155
+    atom           转到状态68
+    parameter_ref  转到状态69
+    function_ref   转到状态70
+    literal        转到状态71
+    column_ref     转到状态72
+    parameter      转到状态73
+
+
+状态 101
+
+  170 scalar_exp: scalar_exp '/' . scalar_exp
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    scalar_exp     转到状态156
+    atom           转到状态68
+    parameter_ref  转到状态69
+    function_ref   转到状态70
+    literal        转到状态71
+    column_ref     转到状态72
+    parameter      转到状态73
+
+
+状态 102
+
+  178 scalar_exp_commalist: scalar_exp_commalist ',' . scalar_exp
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    scalar_exp     转到状态157
+    atom           转到状态68
+    parameter_ref  转到状态69
+    function_ref   转到状态70
+    literal        转到状态71
+    column_ref     转到状态72
+    parameter      转到状态73
+
+
+状态 103
+
+  184 parameter_ref: parameter INDICATOR . parameter
+
+    PARAMETER  shift, and go to state 62
+
+    parameter  转到状态158
+
+
+状态 104
+
+  183 parameter_ref: parameter parameter .
+
+    $default  reduce using rule 183 (parameter_ref)
+
+
+状态 105
+
+  193 table: NAME '.' NAME .
+
+    $default  reduce using rule 193 (table)
+
+
+状态 106
+
+  211 column: NAME .
+
+    $default  reduce using rule 211 (column)
+
+
+状态 107
+
+   99 update_statement_positioned: UPDATE table SET assignment_commalist . WHERE CURRENT OF cursor
+  102 assignment_commalist: assignment_commalist . ',' assignment
+  105 update_statement_searched: UPDATE table SET assignment_commalist . opt_where_clause
+
+    WHERE  shift, and go to state 159
+    ','    shift, and go to state 160
+
+    $default  reduce using rule 109 (opt_where_clause)
+
+    opt_where_clause  转到状态161
+    where_clause      转到状态86
+
+
+状态 108
+
+  101 assignment_commalist: assignment .
+
+    $default  reduce using rule 101 (assignment_commalist)
+
+
+状态 109
+
+  103 assignment: column . '=' scalar_exp
+  104           | column . '=' NULLX
+
+    '='  shift, and go to state 162
+
+
+状态 110
+
+  216 sql: WHENEVER NOT FOUND when_action .
+
+    $default  reduce using rule 216 (sql)
+
+
+状态 111
+
+  218 when_action: GOTO NAME .
+
+    $default  reduce using rule 218 (when_action)
+
+
+状态 112
+
+   12 base_table_def: CREATE . TABLE table '(' base_table_element_commalist ')'
+   36 view_def: CREATE . VIEW table opt_column_commalist AS query_spec opt_with_check_option
+
+    TABLE  shift, and go to state 163
+    VIEW   shift, and go to state 164
+
+
+状态 113
+
+   41 privilege_def: GRANT . privileges ON table TO grantee_commalist opt_with_grant_option
+
+    ALL         shift, and go to state 165
+    DELETE      shift, and go to state 166
+    INSERT      shift, and go to state 167
+    REFERENCES  shift, and go to state 168
+    SELECT      shift, and go to state 169
+    UPDATE      shift, and go to state 170
+
+    privileges           转到状态171
+    operation_commalist  转到状态172
+    operation            转到状态173
+
+
+状态 114
+
+    4 schema: CREATE SCHEMA AUTHORIZATION user opt_schema_element_list .
+
+    $default  reduce using rule 4 (schema)
+
+
+状态 115
+
+    6 opt_schema_element_list: schema_element_list .
+    8 schema_element_list: schema_element_list . schema_element
+
+    CREATE  shift, and go to state 112
+    GRANT   shift, and go to state 113
+
+    $default  reduce using rule 6 (opt_schema_element_list)
+
+    schema_element  转到状态174
+    base_table_def  转到状态117
+    view_def        转到状态118
+    privilege_def   转到状态119
+
+
+状态 116
+
+    7 schema_element_list: schema_element .
+
+    $default  reduce using rule 7 (schema_element_list)
+
+
+状态 117
+
+    9 schema_element: base_table_def .
+
+    $default  reduce using rule 9 (schema_element)
+
+
+状态 118
+
+   10 schema_element: view_def .
+
+    $default  reduce using rule 10 (schema_element)
+
+
+状态 119
+
+   11 schema_element: privilege_def .
+
+    $default  reduce using rule 11 (schema_element)
+
+
+状态 120
+
+  116 query_spec: SELECT . opt_all_distinct selection table_exp
+
+    ALL       shift, and go to state 39
+    DISTINCT  shift, and go to state 40
+
+    $default  reduce using rule 96 (opt_all_distinct)
+
+    opt_all_distinct  转到状态175
+
+
+状态 121
+
+  115 query_term: '(' . query_exp ')'
+
+    SELECT  shift, and go to state 120
+    '('     shift, and go to state 121
+
+    query_exp   转到状态176
+    query_term  转到状态123
+    query_spec  转到状态124
+
+
+状态 122
+
+   59 cursor_def: DECLARE cursor CURSOR FOR query_exp . opt_order_by_clause
+  112 query_exp: query_exp . UNION query_term
+  113          | query_exp . UNION ALL query_term
+
+    ORDER  shift, and go to state 177
+    UNION  shift, and go to state 178
+
+    $default  reduce using rule 60 (opt_order_by_clause)
+
+    opt_order_by_clause  转到状态179
+
+
+状态 123
+
+  111 query_exp: query_term .
+
+    $default  reduce using rule 111 (query_exp)
+
+
+状态 124
+
+  114 query_term: query_spec .
+
+    $default  reduce using rule 114 (query_term)
+
+
+状态 125
+
+  135 search_condition: NOT . search_condition
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    NOT        shift, and go to state 125
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    EXISTS     shift, and go to state 127
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 128
+
+    $default  reduce using rule 132 (search_condition)
+
+    search_condition      转到状态180
+    predicate             转到状态130
+    comparison_predicate  转到状态131
+    between_predicate     转到状态132
+    like_predicate        转到状态133
+    test_for_null         转到状态134
+    in_predicate          转到状态135
+    all_or_any_predicate  转到状态136
+    existence_test        转到状态137
+    scalar_exp            转到状态138
+    atom                  转到状态68
+    parameter_ref         转到状态69
+    function_ref          转到状态70
+    literal               转到状态71
+    column_ref            转到状态139
+    parameter             转到状态73
+
+
+状态 126
+
+   83 delete_statement_positioned: DELETE FROM table WHERE CURRENT . OF cursor
+
+    OF  shift, and go to state 181
+
+
+状态 127
+
+  165 existence_test: EXISTS . subquery
+
+    '('  shift, and go to state 182
+
+    subquery  转到状态183
+
+
+状态 128
+
+  136 search_condition: '(' . search_condition ')'
+  176 scalar_exp: '(' . scalar_exp ')'
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    NOT        shift, and go to state 125
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    EXISTS     shift, and go to state 127
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 128
+
+    $default  reduce using rule 132 (search_condition)
+
+    search_condition      转到状态184
+    predicate             转到状态130
+    comparison_predicate  转到状态131
+    between_predicate     转到状态132
+    like_predicate        转到状态133
+    test_for_null         转到状态134
+    in_predicate          转到状态135
+    all_or_any_predicate  转到状态136
+    existence_test        转到状态137
+    scalar_exp            转到状态185
+    atom                  转到状态68
+    parameter_ref         转到状态69
+    function_ref          转到状态70
+    literal               转到状态71
+    column_ref            转到状态139
+    parameter             转到状态73
+
+
+状态 129
+
+  125 where_clause: WHERE search_condition .
+  133 search_condition: search_condition . OR search_condition
+  134                 | search_condition . AND search_condition
+
+    OR   shift, and go to state 186
+    AND  shift, and go to state 187
+
+    $default  reduce using rule 125 (where_clause)
+
+
+状态 130
+
+  137 search_condition: predicate .
+
+    $default  reduce using rule 137 (search_condition)
+
+
+状态 131
+
+  138 predicate: comparison_predicate .
+
+    $default  reduce using rule 138 (predicate)
+
+
+状态 132
+
+  139 predicate: between_predicate .
+
+    $default  reduce using rule 139 (predicate)
+
+
+状态 133
+
+  140 predicate: like_predicate .
+
+    $default  reduce using rule 140 (predicate)
+
+
+状态 134
+
+  141 predicate: test_for_null .
+
+    $default  reduce using rule 141 (predicate)
+
+
+状态 135
+
+  142 predicate: in_predicate .
+
+    $default  reduce using rule 142 (predicate)
+
+
+状态 136
+
+  143 predicate: all_or_any_predicate .
+
+    $default  reduce using rule 143 (predicate)
+
+
+状态 137
+
+  144 predicate: existence_test .
+
+    $default  reduce using rule 144 (predicate)
+
+
+状态 138
+
+  145 comparison_predicate: scalar_exp . COMPARISON scalar_exp
+  146                     | scalar_exp . COMPARISON subquery
+  147 between_predicate: scalar_exp . NOT BETWEEN scalar_exp AND scalar_exp
+  148                  | scalar_exp . BETWEEN scalar_exp AND scalar_exp
+  149 like_predicate: scalar_exp . NOT LIKE atom opt_escape
+  150               | scalar_exp . LIKE atom opt_escape
+  155 in_predicate: scalar_exp . NOT IN '(' subquery ')'
+  156             | scalar_exp . IN '(' subquery ')'
+  157             | scalar_exp . NOT IN '(' atom_commalist ')'
+  158             | scalar_exp . IN '(' atom_commalist ')'
+  161 all_or_any_predicate: scalar_exp . COMPARISON any_all_some subquery
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  168           | scalar_exp . '-' scalar_exp
+  169           | scalar_exp . '*' scalar_exp
+  170           | scalar_exp . '/' scalar_exp
+
+    NOT         shift, and go to state 188
+    COMPARISON  shift, and go to state 189
+    '+'         shift, and go to state 98
+    '-'         shift, and go to state 99
+    '*'         shift, and go to state 100
+    '/'         shift, and go to state 101
+    BETWEEN     shift, and go to state 190
+    IN          shift, and go to state 191
+    LIKE        shift, and go to state 192
+
+
+状态 139
+
+  153 test_for_null: column_ref . IS NOT NULLX
+  154              | column_ref . IS NULLX
+  174 scalar_exp: column_ref .
+
+    IS  shift, and go to state 193
+
+    $default  reduce using rule 174 (scalar_exp)
+
+
+状态 140
+
+  107 target_commalist: target_commalist ',' . target
+
+    PARAMETER  shift, and go to state 62
+
+    target         转到状态194
+    parameter_ref  转到状态89
+    parameter      转到状态73
+
+
+状态 141
+
+   35 column_commalist: column_commalist . ',' column
+   40 opt_column_commalist: '(' column_commalist . ')'
+
+    ')'  shift, and go to state 195
+    ','  shift, and go to state 196
+
+
+状态 142
+
+   34 column_commalist: column .
+
+    $default  reduce using rule 34 (column_commalist)
+
+
+状态 143
+
+   87 values_or_query_spec: VALUES . '(' insert_atom_commalist ')'
+
+    '('  shift, and go to state 197
+
+
+状态 144
+
+   86 insert_statement: INSERT INTO table opt_column_commalist values_or_query_spec .
+
+    $default  reduce using rule 86 (insert_statement)
+
+
+状态 145
+
+   88 values_or_query_spec: query_spec .
+
+    $default  reduce using rule 88 (values_or_query_spec)
+
+
+状态 146
+
+  195 column_ref: NAME '.' NAME .
+  196           | NAME '.' NAME . '.' NAME
+
+    '.'  shift, and go to state 198
+
+    $default  reduce using rule 195 (column_ref)
+
+
+状态 147
+
+  185 function_ref: AMMSC '(' '*' . ')'
+
+    ')'  shift, and go to state 199
+
+
+状态 148
+
+  187 function_ref: AMMSC '(' ALL . scalar_exp ')'
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    scalar_exp     转到状态200
+    atom           转到状态68
+    parameter_ref  转到状态69
+    function_ref   转到状态70
+    literal        转到状态71
+    column_ref     转到状态72
+    parameter      转到状态73
+
+
+状态 149
+
+  186 function_ref: AMMSC '(' DISTINCT . column_ref ')'
+
+    NAME  shift, and go to state 54
+
+    column_ref  转到状态201
+
+
+状态 150
+
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  168           | scalar_exp . '-' scalar_exp
+  169           | scalar_exp . '*' scalar_exp
+  170           | scalar_exp . '/' scalar_exp
+  188 function_ref: AMMSC '(' scalar_exp . ')'
+
+    '+'  shift, and go to state 98
+    '-'  shift, and go to state 99
+    '*'  shift, and go to state 100
+    '/'  shift, and go to state 101
+    ')'  shift, and go to state 202
+
+
+状态 151
+
+  176 scalar_exp: '(' scalar_exp ')' .
+
+    $default  reduce using rule 176 (scalar_exp)
+
+
+状态 152
+
+   95 select_statement: SELECT opt_all_distinct selection INTO target_commalist . table_exp
+  107 target_commalist: target_commalist . ',' target
+
+    FROM  shift, and go to state 203
+    ','   shift, and go to state 140
+
+    table_exp    转到状态204
+    from_clause  转到状态205
+
+
+状态 153
+
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  167           | scalar_exp '+' scalar_exp .
+  168           | scalar_exp . '-' scalar_exp
+  169           | scalar_exp . '*' scalar_exp
+  170           | scalar_exp . '/' scalar_exp
+
+    '*'  shift, and go to state 100
+    '/'  shift, and go to state 101
+
+    $default  reduce using rule 167 (scalar_exp)
+
+
+状态 154
+
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  168           | scalar_exp . '-' scalar_exp
+  168           | scalar_exp '-' scalar_exp .
+  169           | scalar_exp . '*' scalar_exp
+  170           | scalar_exp . '/' scalar_exp
+
+    '*'  shift, and go to state 100
+    '/'  shift, and go to state 101
+
+    $default  reduce using rule 168 (scalar_exp)
+
+
+状态 155
+
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  168           | scalar_exp . '-' scalar_exp
+  169           | scalar_exp . '*' scalar_exp
+  169           | scalar_exp '*' scalar_exp .
+  170           | scalar_exp . '/' scalar_exp
+
+    $default  reduce using rule 169 (scalar_exp)
+
+
+状态 156
+
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  168           | scalar_exp . '-' scalar_exp
+  169           | scalar_exp . '*' scalar_exp
+  170           | scalar_exp . '/' scalar_exp
+  170           | scalar_exp '/' scalar_exp .
+
+    $default  reduce using rule 170 (scalar_exp)
+
+
+状态 157
+
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  168           | scalar_exp . '-' scalar_exp
+  169           | scalar_exp . '*' scalar_exp
+  170           | scalar_exp . '/' scalar_exp
+  178 scalar_exp_commalist: scalar_exp_commalist ',' scalar_exp .
+
+    '+'  shift, and go to state 98
+    '-'  shift, and go to state 99
+    '*'  shift, and go to state 100
+    '/'  shift, and go to state 101
+
+    $default  reduce using rule 178 (scalar_exp_commalist)
+
+
+状态 158
+
+  184 parameter_ref: parameter INDICATOR parameter .
+
+    $default  reduce using rule 184 (parameter_ref)
+
+
+状态 159
+
+   99 update_statement_positioned: UPDATE table SET assignment_commalist WHERE . CURRENT OF cursor
+  125 where_clause: WHERE . search_condition
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    NOT        shift, and go to state 125
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    CURRENT    shift, and go to state 206
+    EXISTS     shift, and go to state 127
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 128
+
+    $default  reduce using rule 132 (search_condition)
+
+    search_condition      转到状态129
+    predicate             转到状态130
+    comparison_predicate  转到状态131
+    between_predicate     转到状态132
+    like_predicate        转到状态133
+    test_for_null         转到状态134
+    in_predicate          转到状态135
+    all_or_any_predicate  转到状态136
+    existence_test        转到状态137
+    scalar_exp            转到状态138
+    atom                  转到状态68
+    parameter_ref         转到状态69
+    function_ref          转到状态70
+    literal               转到状态71
+    column_ref            转到状态139
+    parameter             转到状态73
+
+
+状态 160
+
+  102 assignment_commalist: assignment_commalist ',' . assignment
+
+    NAME  shift, and go to state 106
+
+    assignment  转到状态207
+    column      转到状态109
+
+
+状态 161
+
+  105 update_statement_searched: UPDATE table SET assignment_commalist opt_where_clause .
+
+    $default  reduce using rule 105 (update_statement_searched)
+
+
+状态 162
+
+  103 assignment: column '=' . scalar_exp
+  104           | column '=' . NULLX
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    NULLX      shift, and go to state 208
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    scalar_exp     转到状态209
+    atom           转到状态68
+    parameter_ref  转到状态69
+    function_ref   转到状态70
+    literal        转到状态71
+    column_ref     转到状态72
+    parameter      转到状态73
+
+
+状态 163
+
+   12 base_table_def: CREATE TABLE . table '(' base_table_element_commalist ')'
+
+    NAME  shift, and go to state 42
+
+    table  转到状态210
+
+
+状态 164
+
+   36 view_def: CREATE VIEW . table opt_column_commalist AS query_spec opt_with_check_option
+
+    NAME  shift, and go to state 42
+
+    table  转到状态211
+
+
+状态 165
+
+   44 privileges: ALL . PRIVILEGES
+   45           | ALL .
+
+    PRIVILEGES  shift, and go to state 212
+
+    $default  reduce using rule 45 (privileges)
+
+
+状态 166
+
+   51 operation: DELETE .
+
+    $default  reduce using rule 51 (operation)
+
+
+状态 167
+
+   50 operation: INSERT .
+
+    $default  reduce using rule 50 (operation)
+
+
+状态 168
+
+   53 operation: REFERENCES . opt_column_commalist
+
+    '('  shift, and go to state 90
+
+    $default  reduce using rule 39 (opt_column_commalist)
+
+    opt_column_commalist  转到状态213
+
+
+状态 169
+
+   49 operation: SELECT .
+
+    $default  reduce using rule 49 (operation)
+
+
+状态 170
+
+   52 operation: UPDATE . opt_column_commalist
+
+    '('  shift, and go to state 90
+
+    $default  reduce using rule 39 (opt_column_commalist)
+
+    opt_column_commalist  转到状态214
+
+
+状态 171
+
+   41 privilege_def: GRANT privileges . ON table TO grantee_commalist opt_with_grant_option
+
+    ON  shift, and go to state 215
+
+
+状态 172
+
+   46 privileges: operation_commalist .
+   48 operation_commalist: operation_commalist . ',' operation
+
+    ','  shift, and go to state 216
+
+    $default  reduce using rule 46 (privileges)
+
+
+状态 173
+
+   47 operation_commalist: operation .
+
+    $default  reduce using rule 47 (operation_commalist)
+
+
+状态 174
+
+    8 schema_element_list: schema_element_list schema_element .
+
+    $default  reduce using rule 8 (schema_element_list)
+
+
+状态 175
+
+  116 query_spec: SELECT opt_all_distinct . selection table_exp
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    '*'        shift, and go to state 60
+    AMMSC      shift, and go to state 61
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    selection             转到状态217
+    scalar_exp            转到状态66
+    scalar_exp_commalist  转到状态67
+    atom                  转到状态68
+    parameter_ref         转到状态69
+    function_ref          转到状态70
+    literal               转到状态71
+    column_ref            转到状态72
+    parameter             转到状态73
+
+
+状态 176
+
+  112 query_exp: query_exp . UNION query_term
+  113          | query_exp . UNION ALL query_term
+  115 query_term: '(' query_exp . ')'
+
+    UNION  shift, and go to state 178
+    ')'    shift, and go to state 218
+
+
+状态 177
+
+   61 opt_order_by_clause: ORDER . BY ordering_spec_commalist
+
+    BY  shift, and go to state 219
+
+
+状态 178
+
+  112 query_exp: query_exp UNION . query_term
+  113          | query_exp UNION . ALL query_term
+
+    ALL     shift, and go to state 220
+    SELECT  shift, and go to state 120
+    '('     shift, and go to state 121
+
+    query_term  转到状态221
+    query_spec  转到状态124
+
+
+状态 179
+
+   59 cursor_def: DECLARE cursor CURSOR FOR query_exp opt_order_by_clause .
+
+    $default  reduce using rule 59 (cursor_def)
+
+
+状态 180
+
+  133 search_condition: search_condition . OR search_condition
+  134                 | search_condition . AND search_condition
+  135                 | NOT search_condition .
+
+    $default  reduce using rule 135 (search_condition)
+
+
+状态 181
+
+   83 delete_statement_positioned: DELETE FROM table WHERE CURRENT OF . cursor
+
+    NAME  shift, and go to state 29
+
+    cursor  转到状态222
+
+
+状态 182
+
+  166 subquery: '(' . SELECT opt_all_distinct selection table_exp ')'
+
+    SELECT  shift, and go to state 223
+
+
+状态 183
+
+  165 existence_test: EXISTS subquery .
+
+    $default  reduce using rule 165 (existence_test)
+
+
+状态 184
+
+  133 search_condition: search_condition . OR search_condition
+  134                 | search_condition . AND search_condition
+  136                 | '(' search_condition . ')'
+
+    OR   shift, and go to state 186
+    AND  shift, and go to state 187
+    ')'  shift, and go to state 224
+
+
+状态 185
+
+  145 comparison_predicate: scalar_exp . COMPARISON scalar_exp
+  146                     | scalar_exp . COMPARISON subquery
+  147 between_predicate: scalar_exp . NOT BETWEEN scalar_exp AND scalar_exp
+  148                  | scalar_exp . BETWEEN scalar_exp AND scalar_exp
+  149 like_predicate: scalar_exp . NOT LIKE atom opt_escape
+  150               | scalar_exp . LIKE atom opt_escape
+  155 in_predicate: scalar_exp . NOT IN '(' subquery ')'
+  156             | scalar_exp . IN '(' subquery ')'
+  157             | scalar_exp . NOT IN '(' atom_commalist ')'
+  158             | scalar_exp . IN '(' atom_commalist ')'
+  161 all_or_any_predicate: scalar_exp . COMPARISON any_all_some subquery
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  168           | scalar_exp . '-' scalar_exp
+  169           | scalar_exp . '*' scalar_exp
+  170           | scalar_exp . '/' scalar_exp
+  176           | '(' scalar_exp . ')'
+
+    NOT         shift, and go to state 188
+    COMPARISON  shift, and go to state 189
+    '+'         shift, and go to state 98
+    '-'         shift, and go to state 99
+    '*'         shift, and go to state 100
+    '/'         shift, and go to state 101
+    BETWEEN     shift, and go to state 190
+    IN          shift, and go to state 191
+    LIKE        shift, and go to state 192
+    ')'         shift, and go to state 151
+
+
+状态 186
+
+  133 search_condition: search_condition OR . search_condition
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    NOT        shift, and go to state 125
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    EXISTS     shift, and go to state 127
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 128
+
+    $default  reduce using rule 132 (search_condition)
+
+    search_condition      转到状态225
+    predicate             转到状态130
+    comparison_predicate  转到状态131
+    between_predicate     转到状态132
+    like_predicate        转到状态133
+    test_for_null         转到状态134
+    in_predicate          转到状态135
+    all_or_any_predicate  转到状态136
+    existence_test        转到状态137
+    scalar_exp            转到状态138
+    atom                  转到状态68
+    parameter_ref         转到状态69
+    function_ref          转到状态70
+    literal               转到状态71
+    column_ref            转到状态139
+    parameter             转到状态73
+
+
+状态 187
+
+  134 search_condition: search_condition AND . search_condition
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    NOT        shift, and go to state 125
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    EXISTS     shift, and go to state 127
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 128
+
+    $default  reduce using rule 132 (search_condition)
+
+    search_condition      转到状态226
+    predicate             转到状态130
+    comparison_predicate  转到状态131
+    between_predicate     转到状态132
+    like_predicate        转到状态133
+    test_for_null         转到状态134
+    in_predicate          转到状态135
+    all_or_any_predicate  转到状态136
+    existence_test        转到状态137
+    scalar_exp            转到状态138
+    atom                  转到状态68
+    parameter_ref         转到状态69
+    function_ref          转到状态70
+    literal               转到状态71
+    column_ref            转到状态139
+    parameter             转到状态73
+
+
+状态 188
+
+  147 between_predicate: scalar_exp NOT . BETWEEN scalar_exp AND scalar_exp
+  149 like_predicate: scalar_exp NOT . LIKE atom opt_escape
+  155 in_predicate: scalar_exp NOT . IN '(' subquery ')'
+  157             | scalar_exp NOT . IN '(' atom_commalist ')'
+
+    BETWEEN  shift, and go to state 227
+    IN       shift, and go to state 228
+    LIKE     shift, and go to state 229
+
+
+状态 189
+
+  145 comparison_predicate: scalar_exp COMPARISON . scalar_exp
+  146                     | scalar_exp COMPARISON . subquery
+  161 all_or_any_predicate: scalar_exp COMPARISON . any_all_some subquery
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    ALL        shift, and go to state 230
+    AMMSC      shift, and go to state 61
+    ANY        shift, and go to state 231
+    PARAMETER  shift, and go to state 62
+    SOME       shift, and go to state 232
+    USER       shift, and go to state 63
+    '('        shift, and go to state 233
+
+    any_all_some   转到状态234
+    subquery       转到状态235
+    scalar_exp     转到状态236
+    atom           转到状态68
+    parameter_ref  转到状态69
+    function_ref   转到状态70
+    literal        转到状态71
+    column_ref     转到状态72
+    parameter      转到状态73
+
+
+状态 190
+
+  148 between_predicate: scalar_exp BETWEEN . scalar_exp AND scalar_exp
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    scalar_exp     转到状态237
+    atom           转到状态68
+    parameter_ref  转到状态69
+    function_ref   转到状态70
+    literal        转到状态71
+    column_ref     转到状态72
+    parameter      转到状态73
+
+
+状态 191
+
+  156 in_predicate: scalar_exp IN . '(' subquery ')'
+  158             | scalar_exp IN . '(' atom_commalist ')'
+
+    '('  shift, and go to state 238
+
+
+状态 192
+
+  150 like_predicate: scalar_exp LIKE . atom opt_escape
+
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+
+    atom           转到状态239
+    parameter_ref  转到状态69
+    literal        转到状态71
+    parameter      转到状态73
+
+
+状态 193
+
+  153 test_for_null: column_ref IS . NOT NULLX
+  154              | column_ref IS . NULLX
+
+    NOT    shift, and go to state 240
+    NULLX  shift, and go to state 241
+
+
+状态 194
+
+  107 target_commalist: target_commalist ',' target .
+
+    $default  reduce using rule 107 (target_commalist)
+
+
+状态 195
+
+   40 opt_column_commalist: '(' column_commalist ')' .
+
+    $default  reduce using rule 40 (opt_column_commalist)
+
+
+状态 196
+
+   35 column_commalist: column_commalist ',' . column
+
+    NAME  shift, and go to state 106
+
+    column  转到状态242
+
+
+状态 197
+
+   87 values_or_query_spec: VALUES '(' . insert_atom_commalist ')'
+
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    NULLX      shift, and go to state 243
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+
+    insert_atom_commalist  转到状态244
+    insert_atom            转到状态245
+    atom                   转到状态246
+    parameter_ref          转到状态69
+    literal                转到状态71
+    parameter              转到状态73
+
+
+状态 198
+
+  196 column_ref: NAME '.' NAME '.' . NAME
+
+    NAME  shift, and go to state 247
+
+
+状态 199
+
+  185 function_ref: AMMSC '(' '*' ')' .
+
+    $default  reduce using rule 185 (function_ref)
+
+
+状态 200
+
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  168           | scalar_exp . '-' scalar_exp
+  169           | scalar_exp . '*' scalar_exp
+  170           | scalar_exp . '/' scalar_exp
+  187 function_ref: AMMSC '(' ALL scalar_exp . ')'
+
+    '+'  shift, and go to state 98
+    '-'  shift, and go to state 99
+    '*'  shift, and go to state 100
+    '/'  shift, and go to state 101
+    ')'  shift, and go to state 248
+
+
+状态 201
+
+  186 function_ref: AMMSC '(' DISTINCT column_ref . ')'
+
+    ')'  shift, and go to state 249
+
+
+状态 202
+
+  188 function_ref: AMMSC '(' scalar_exp ')' .
+
+    $default  reduce using rule 188 (function_ref)
+
+
+状态 203
+
+  120 from_clause: FROM . table_ref_commalist
+
+    NAME  shift, and go to state 42
+
+    table_ref_commalist  转到状态250
+    table_ref            转到状态251
+    table                转到状态252
+
+
+状态 204
+
+   95 select_statement: SELECT opt_all_distinct selection INTO target_commalist table_exp .
+
+    $default  reduce using rule 95 (select_statement)
+
+
+状态 205
+
+  119 table_exp: from_clause . opt_where_clause opt_group_by_clause opt_having_clause
+
+    WHERE  shift, and go to state 253
+
+    $default  reduce using rule 109 (opt_where_clause)
+
+    opt_where_clause  转到状态254
+    where_clause      转到状态86
+
+
+状态 206
+
+   99 update_statement_positioned: UPDATE table SET assignment_commalist WHERE CURRENT . OF cursor
+
+    OF  shift, and go to state 255
+
+
+状态 207
+
+  102 assignment_commalist: assignment_commalist ',' assignment .
+
+    $default  reduce using rule 102 (assignment_commalist)
+
+
+状态 208
+
+  104 assignment: column '=' NULLX .
+
+    $default  reduce using rule 104 (assignment)
+
+
+状态 209
+
+  103 assignment: column '=' scalar_exp .
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  168           | scalar_exp . '-' scalar_exp
+  169           | scalar_exp . '*' scalar_exp
+  170           | scalar_exp . '/' scalar_exp
+
+    '+'  shift, and go to state 98
+    '-'  shift, and go to state 99
+    '*'  shift, and go to state 100
+    '/'  shift, and go to state 101
+
+    $default  reduce using rule 103 (assignment)
+
+
+状态 210
+
+   12 base_table_def: CREATE TABLE table . '(' base_table_element_commalist ')'
+
+    '('  shift, and go to state 256
+
+
+状态 211
+
+   36 view_def: CREATE VIEW table . opt_column_commalist AS query_spec opt_with_check_option
+
+    '('  shift, and go to state 90
+
+    $default  reduce using rule 39 (opt_column_commalist)
+
+    opt_column_commalist  转到状态257
+
+
+状态 212
+
+   44 privileges: ALL PRIVILEGES .
+
+    $default  reduce using rule 44 (privileges)
+
+
+状态 213
+
+   53 operation: REFERENCES opt_column_commalist .
+
+    $default  reduce using rule 53 (operation)
+
+
+状态 214
+
+   52 operation: UPDATE opt_column_commalist .
+
+    $default  reduce using rule 52 (operation)
+
+
+状态 215
+
+   41 privilege_def: GRANT privileges ON . table TO grantee_commalist opt_with_grant_option
+
+    NAME  shift, and go to state 42
+
+    table  转到状态258
+
+
+状态 216
+
+   48 operation_commalist: operation_commalist ',' . operation
+
+    DELETE      shift, and go to state 166
+    INSERT      shift, and go to state 167
+    REFERENCES  shift, and go to state 168
+    SELECT      shift, and go to state 169
+    UPDATE      shift, and go to state 170
+
+    operation  转到状态259
+
+
+状态 217
+
+  116 query_spec: SELECT opt_all_distinct selection . table_exp
+
+    FROM  shift, and go to state 203
+
+    table_exp    转到状态260
+    from_clause  转到状态205
+
+
+状态 218
+
+  115 query_term: '(' query_exp ')' .
+
+    $default  reduce using rule 115 (query_term)
+
+
+状态 219
+
+   61 opt_order_by_clause: ORDER BY . ordering_spec_commalist
+
+    NAME    shift, and go to state 54
+    INTNUM  shift, and go to state 261
+
+    ordering_spec_commalist  转到状态262
+    ordering_spec            转到状态263
+    column_ref               转到状态264
+
+
+状态 220
+
+  113 query_exp: query_exp UNION ALL . query_term
+
+    SELECT  shift, and go to state 120
+    '('     shift, and go to state 121
+
+    query_term  转到状态265
+    query_spec  转到状态124
+
+
+状态 221
+
+  112 query_exp: query_exp UNION query_term .
+
+    $default  reduce using rule 112 (query_exp)
+
+
+状态 222
+
+   83 delete_statement_positioned: DELETE FROM table WHERE CURRENT OF cursor .
+
+    $default  reduce using rule 83 (delete_statement_positioned)
+
+
+状态 223
+
+  166 subquery: '(' SELECT . opt_all_distinct selection table_exp ')'
+
+    ALL       shift, and go to state 39
+    DISTINCT  shift, and go to state 40
+
+    $default  reduce using rule 96 (opt_all_distinct)
+
+    opt_all_distinct  转到状态266
+
+
+状态 224
+
+  136 search_condition: '(' search_condition ')' .
+
+    $default  reduce using rule 136 (search_condition)
+
+
+状态 225
+
+  133 search_condition: search_condition . OR search_condition
+  133                 | search_condition OR search_condition .
+  134                 | search_condition . AND search_condition
+
+    AND  shift, and go to state 187
+
+    $default  reduce using rule 133 (search_condition)
+
+
+状态 226
+
+  133 search_condition: search_condition . OR search_condition
+  134                 | search_condition . AND search_condition
+  134                 | search_condition AND search_condition .
+
+    $default  reduce using rule 134 (search_condition)
+
+
+状态 227
+
+  147 between_predicate: scalar_exp NOT BETWEEN . scalar_exp AND scalar_exp
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    scalar_exp     转到状态267
+    atom           转到状态68
+    parameter_ref  转到状态69
+    function_ref   转到状态70
+    literal        转到状态71
+    column_ref     转到状态72
+    parameter      转到状态73
+
+
+状态 228
+
+  155 in_predicate: scalar_exp NOT IN . '(' subquery ')'
+  157             | scalar_exp NOT IN . '(' atom_commalist ')'
+
+    '('  shift, and go to state 268
+
+
+状态 229
+
+  149 like_predicate: scalar_exp NOT LIKE . atom opt_escape
+
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+
+    atom           转到状态269
+    parameter_ref  转到状态69
+    literal        转到状态71
+    parameter      转到状态73
+
+
+状态 230
+
+  163 any_all_some: ALL .
+
+    $default  reduce using rule 163 (any_all_some)
+
+
+状态 231
+
+  162 any_all_some: ANY .
+
+    $default  reduce using rule 162 (any_all_some)
+
+
+状态 232
+
+  164 any_all_some: SOME .
+
+    $default  reduce using rule 164 (any_all_some)
+
+
+状态 233
+
+  166 subquery: '(' . SELECT opt_all_distinct selection table_exp ')'
+  176 scalar_exp: '(' . scalar_exp ')'
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    PARAMETER  shift, and go to state 62
+    SELECT     shift, and go to state 223
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    scalar_exp     转到状态96
+    atom           转到状态68
+    parameter_ref  转到状态69
+    function_ref   转到状态70
+    literal        转到状态71
+    column_ref     转到状态72
+    parameter      转到状态73
+
+
+状态 234
+
+  161 all_or_any_predicate: scalar_exp COMPARISON any_all_some . subquery
+
+    '('  shift, and go to state 182
+
+    subquery  转到状态270
+
+
+状态 235
+
+  146 comparison_predicate: scalar_exp COMPARISON subquery .
+
+    $default  reduce using rule 146 (comparison_predicate)
+
+
+状态 236
+
+  145 comparison_predicate: scalar_exp COMPARISON scalar_exp .
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  168           | scalar_exp . '-' scalar_exp
+  169           | scalar_exp . '*' scalar_exp
+  170           | scalar_exp . '/' scalar_exp
+
+    '+'  shift, and go to state 98
+    '-'  shift, and go to state 99
+    '*'  shift, and go to state 100
+    '/'  shift, and go to state 101
+
+    $default  reduce using rule 145 (comparison_predicate)
+
+
+状态 237
+
+  148 between_predicate: scalar_exp BETWEEN scalar_exp . AND scalar_exp
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  168           | scalar_exp . '-' scalar_exp
+  169           | scalar_exp . '*' scalar_exp
+  170           | scalar_exp . '/' scalar_exp
+
+    AND  shift, and go to state 271
+    '+'  shift, and go to state 98
+    '-'  shift, and go to state 99
+    '*'  shift, and go to state 100
+    '/'  shift, and go to state 101
+
+
+状态 238
+
+  156 in_predicate: scalar_exp IN '(' . subquery ')'
+  158             | scalar_exp IN '(' . atom_commalist ')'
+
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 182
+
+    atom_commalist  转到状态272
+    subquery        转到状态273
+    atom            转到状态274
+    parameter_ref   转到状态69
+    literal         转到状态71
+    parameter       转到状态73
+
+
+状态 239
+
+  150 like_predicate: scalar_exp LIKE atom . opt_escape
+
+    ESCAPE  shift, and go to state 275
+
+    $default  reduce using rule 151 (opt_escape)
+
+    opt_escape  转到状态276
+
+
+状态 240
+
+  153 test_for_null: column_ref IS NOT . NULLX
+
+    NULLX  shift, and go to state 277
+
+
+状态 241
+
+  154 test_for_null: column_ref IS NULLX .
+
+    $default  reduce using rule 154 (test_for_null)
+
+
+状态 242
+
+   35 column_commalist: column_commalist ',' column .
+
+    $default  reduce using rule 35 (column_commalist)
+
+
+状态 243
+
+   92 insert_atom: NULLX .
+
+    $default  reduce using rule 92 (insert_atom)
+
+
+状态 244
+
+   87 values_or_query_spec: VALUES '(' insert_atom_commalist . ')'
+   90 insert_atom_commalist: insert_atom_commalist . ',' insert_atom
+
+    ')'  shift, and go to state 278
+    ','  shift, and go to state 279
+
+
+状态 245
+
+   89 insert_atom_commalist: insert_atom .
+
+    $default  reduce using rule 89 (insert_atom_commalist)
+
+
+状态 246
+
+   91 insert_atom: atom .
+
+    $default  reduce using rule 91 (insert_atom)
+
+
+状态 247
+
+  196 column_ref: NAME '.' NAME '.' NAME .
+
+    $default  reduce using rule 196 (column_ref)
+
+
+状态 248
+
+  187 function_ref: AMMSC '(' ALL scalar_exp ')' .
+
+    $default  reduce using rule 187 (function_ref)
+
+
+状态 249
+
+  186 function_ref: AMMSC '(' DISTINCT column_ref ')' .
+
+    $default  reduce using rule 186 (function_ref)
+
+
+状态 250
+
+  120 from_clause: FROM table_ref_commalist .
+  122 table_ref_commalist: table_ref_commalist . ',' table_ref
+
+    ','  shift, and go to state 280
+
+    $default  reduce using rule 120 (from_clause)
+
+
+状态 251
+
+  121 table_ref_commalist: table_ref .
+
+    $default  reduce using rule 121 (table_ref_commalist)
+
+
+状态 252
+
+  123 table_ref: table .
+  124          | table . range_variable
+
+    NAME  shift, and go to state 281
+
+    $default  reduce using rule 123 (table_ref)
+
+    range_variable  转到状态282
+
+
+状态 253
+
+  125 where_clause: WHERE . search_condition
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    NOT        shift, and go to state 125
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    EXISTS     shift, and go to state 127
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 128
+
+    $default  reduce using rule 132 (search_condition)
+
+    search_condition      转到状态129
+    predicate             转到状态130
+    comparison_predicate  转到状态131
+    between_predicate     转到状态132
+    like_predicate        转到状态133
+    test_for_null         转到状态134
+    in_predicate          转到状态135
+    all_or_any_predicate  转到状态136
+    existence_test        转到状态137
+    scalar_exp            转到状态138
+    atom                  转到状态68
+    parameter_ref         转到状态69
+    function_ref          转到状态70
+    literal               转到状态71
+    column_ref            转到状态139
+    parameter             转到状态73
+
+
+状态 254
+
+  119 table_exp: from_clause opt_where_clause . opt_group_by_clause opt_having_clause
+
+    GROUP  shift, and go to state 283
+
+    $default  reduce using rule 126 (opt_group_by_clause)
+
+    opt_group_by_clause  转到状态284
+
+
+状态 255
+
+   99 update_statement_positioned: UPDATE table SET assignment_commalist WHERE CURRENT OF . cursor
+
+    NAME  shift, and go to state 29
+
+    cursor  转到状态285
+
+
+状态 256
+
+   12 base_table_def: CREATE TABLE table '(' . base_table_element_commalist ')'
+
+    NAME     shift, and go to state 106
+    CHECK    shift, and go to state 286
+    FOREIGN  shift, and go to state 287
+    PRIMARY  shift, and go to state 288
+    UNIQUE   shift, and go to state 289
+
+    base_table_element_commalist  转到状态290
+    base_table_element            转到状态291
+    column_def                    转到状态292
+    table_constraint_def          转到状态293
+    column                        转到状态294
+
+
+状态 257
+
+   36 view_def: CREATE VIEW table opt_column_commalist . AS query_spec opt_with_check_option
+
+    AS  shift, and go to state 295
+
+
+状态 258
+
+   41 privilege_def: GRANT privileges ON table . TO grantee_commalist opt_with_grant_option
+
+    TO  shift, and go to state 296
+
+
+状态 259
+
+   48 operation_commalist: operation_commalist ',' operation .
+
+    $default  reduce using rule 48 (operation_commalist)
+
+
+状态 260
+
+  116 query_spec: SELECT opt_all_distinct selection table_exp .
+
+    $default  reduce using rule 116 (query_spec)
+
+
+状态 261
+
+   64 ordering_spec: INTNUM . opt_asc_desc
+
+    ASC   shift, and go to state 297
+    DESC  shift, and go to state 298
+
+    $default  reduce using rule 66 (opt_asc_desc)
+
+    opt_asc_desc  转到状态299
+
+
+状态 262
+
+   61 opt_order_by_clause: ORDER BY ordering_spec_commalist .
+   63 ordering_spec_commalist: ordering_spec_commalist . ',' ordering_spec
+
+    ','  shift, and go to state 300
+
+    $default  reduce using rule 61 (opt_order_by_clause)
+
+
+状态 263
+
+   62 ordering_spec_commalist: ordering_spec .
+
+    $default  reduce using rule 62 (ordering_spec_commalist)
+
+
+状态 264
+
+   65 ordering_spec: column_ref . opt_asc_desc
+
+    ASC   shift, and go to state 297
+    DESC  shift, and go to state 298
+
+    $default  reduce using rule 66 (opt_asc_desc)
+
+    opt_asc_desc  转到状态301
+
+
+状态 265
+
+  113 query_exp: query_exp UNION ALL query_term .
+
+    $default  reduce using rule 113 (query_exp)
+
+
+状态 266
+
+  166 subquery: '(' SELECT opt_all_distinct . selection table_exp ')'
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    '*'        shift, and go to state 60
+    AMMSC      shift, and go to state 61
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    selection             转到状态302
+    scalar_exp            转到状态66
+    scalar_exp_commalist  转到状态67
+    atom                  转到状态68
+    parameter_ref         转到状态69
+    function_ref          转到状态70
+    literal               转到状态71
+    column_ref            转到状态72
+    parameter             转到状态73
+
+
+状态 267
+
+  147 between_predicate: scalar_exp NOT BETWEEN scalar_exp . AND scalar_exp
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  168           | scalar_exp . '-' scalar_exp
+  169           | scalar_exp . '*' scalar_exp
+  170           | scalar_exp . '/' scalar_exp
+
+    AND  shift, and go to state 303
+    '+'  shift, and go to state 98
+    '-'  shift, and go to state 99
+    '*'  shift, and go to state 100
+    '/'  shift, and go to state 101
+
+
+状态 268
+
+  155 in_predicate: scalar_exp NOT IN '(' . subquery ')'
+  157             | scalar_exp NOT IN '(' . atom_commalist ')'
+
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 182
+
+    atom_commalist  转到状态304
+    subquery        转到状态305
+    atom            转到状态274
+    parameter_ref   转到状态69
+    literal         转到状态71
+    parameter       转到状态73
+
+
+状态 269
+
+  149 like_predicate: scalar_exp NOT LIKE atom . opt_escape
+
+    ESCAPE  shift, and go to state 275
+
+    $default  reduce using rule 151 (opt_escape)
+
+    opt_escape  转到状态306
+
+
+状态 270
+
+  161 all_or_any_predicate: scalar_exp COMPARISON any_all_some subquery .
+
+    $default  reduce using rule 161 (all_or_any_predicate)
+
+
+状态 271
+
+  148 between_predicate: scalar_exp BETWEEN scalar_exp AND . scalar_exp
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    scalar_exp     转到状态307
+    atom           转到状态68
+    parameter_ref  转到状态69
+    function_ref   转到状态70
+    literal        转到状态71
+    column_ref     转到状态72
+    parameter      转到状态73
+
+
+状态 272
+
+  158 in_predicate: scalar_exp IN '(' atom_commalist . ')'
+  160 atom_commalist: atom_commalist . ',' atom
+
+    ')'  shift, and go to state 308
+    ','  shift, and go to state 309
+
+
+状态 273
+
+  156 in_predicate: scalar_exp IN '(' subquery . ')'
+
+    ')'  shift, and go to state 310
+
+
+状态 274
+
+  159 atom_commalist: atom .
+
+    $default  reduce using rule 159 (atom_commalist)
+
+
+状态 275
+
+  152 opt_escape: ESCAPE . atom
+
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+
+    atom           转到状态311
+    parameter_ref  转到状态69
+    literal        转到状态71
+    parameter      转到状态73
+
+
+状态 276
+
+  150 like_predicate: scalar_exp LIKE atom opt_escape .
+
+    $default  reduce using rule 150 (like_predicate)
+
+
+状态 277
+
+  153 test_for_null: column_ref IS NOT NULLX .
+
+    $default  reduce using rule 153 (test_for_null)
+
+
+状态 278
+
+   87 values_or_query_spec: VALUES '(' insert_atom_commalist ')' .
+
+    $default  reduce using rule 87 (values_or_query_spec)
+
+
+状态 279
+
+   90 insert_atom_commalist: insert_atom_commalist ',' . insert_atom
+
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    NULLX      shift, and go to state 243
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+
+    insert_atom    转到状态312
+    atom           转到状态246
+    parameter_ref  转到状态69
+    literal        转到状态71
+    parameter      转到状态73
+
+
+状态 280
+
+  122 table_ref_commalist: table_ref_commalist ',' . table_ref
+
+    NAME  shift, and go to state 42
+
+    table_ref  转到状态313
+    table      转到状态252
+
+
+状态 281
+
+  214 range_variable: NAME .
+
+    $default  reduce using rule 214 (range_variable)
+
+
+状态 282
+
+  124 table_ref: table range_variable .
+
+    $default  reduce using rule 124 (table_ref)
+
+
+状态 283
+
+  127 opt_group_by_clause: GROUP . BY column_ref_commalist
+
+    BY  shift, and go to state 314
+
+
+状态 284
+
+  119 table_exp: from_clause opt_where_clause opt_group_by_clause . opt_having_clause
+
+    HAVING  shift, and go to state 315
+
+    $default  reduce using rule 130 (opt_having_clause)
+
+    opt_having_clause  转到状态316
+
+
+状态 285
+
+   99 update_statement_positioned: UPDATE table SET assignment_commalist WHERE CURRENT OF cursor .
+
+    $default  reduce using rule 99 (update_statement_positioned)
+
+
+状态 286
+
+   33 table_constraint_def: CHECK . '(' search_condition ')'
+
+    '('  shift, and go to state 317
+
+
+状态 287
+
+   31 table_constraint_def: FOREIGN . KEY '(' column_commalist ')' REFERENCES table
+   32                     | FOREIGN . KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')'
+
+    KEY  shift, and go to state 318
+
+
+状态 288
+
+   30 table_constraint_def: PRIMARY . KEY '(' column_commalist ')'
+
+    KEY  shift, and go to state 319
+
+
+状态 289
+
+   29 table_constraint_def: UNIQUE . '(' column_commalist ')'
+
+    '('  shift, and go to state 320
+
+
+状态 290
+
+   12 base_table_def: CREATE TABLE table '(' base_table_element_commalist . ')'
+   14 base_table_element_commalist: base_table_element_commalist . ',' base_table_element
+
+    ')'  shift, and go to state 321
+    ','  shift, and go to state 322
+
+
+状态 291
+
+   13 base_table_element_commalist: base_table_element .
+
+    $default  reduce using rule 13 (base_table_element_commalist)
+
+
+状态 292
+
+   15 base_table_element: column_def .
+
+    $default  reduce using rule 15 (base_table_element)
+
+
+状态 293
+
+   16 base_table_element: table_constraint_def .
+
+    $default  reduce using rule 16 (base_table_element)
+
+
+状态 294
+
+   17 column_def: column . data_type column_def_opt_list
+
+    CHARACTER  shift, and go to state 323
+    DECIMAL    shift, and go to state 324
+    DOUBLE     shift, and go to state 325
+    FLOAT      shift, and go to state 326
+    INTEGER    shift, and go to state 327
+    NUMERIC    shift, and go to state 328
+    REAL       shift, and go to state 329
+    SMALLINT   shift, and go to state 330
+
+    data_type  转到状态331
+
+
+状态 295
+
+   36 view_def: CREATE VIEW table opt_column_commalist AS . query_spec opt_with_check_option
+
+    SELECT  shift, and go to state 120
+
+    query_spec  转到状态332
+
+
+状态 296
+
+   41 privilege_def: GRANT privileges ON table TO . grantee_commalist opt_with_grant_option
+
+    NAME    shift, and go to state 81
+    PUBLIC  shift, and go to state 333
+
+    grantee_commalist  转到状态334
+    grantee            转到状态335
+    user               转到状态336
+
+
+状态 297
+
+   67 opt_asc_desc: ASC .
+
+    $default  reduce using rule 67 (opt_asc_desc)
+
+
+状态 298
+
+   68 opt_asc_desc: DESC .
+
+    $default  reduce using rule 68 (opt_asc_desc)
+
+
+状态 299
+
+   64 ordering_spec: INTNUM opt_asc_desc .
+
+    $default  reduce using rule 64 (ordering_spec)
+
+
+状态 300
+
+   63 ordering_spec_commalist: ordering_spec_commalist ',' . ordering_spec
+
+    NAME    shift, and go to state 54
+    INTNUM  shift, and go to state 261
+
+    ordering_spec  转到状态337
+    column_ref     转到状态264
+
+
+状态 301
+
+   65 ordering_spec: column_ref opt_asc_desc .
+
+    $default  reduce using rule 65 (ordering_spec)
+
+
+状态 302
+
+  166 subquery: '(' SELECT opt_all_distinct selection . table_exp ')'
+
+    FROM  shift, and go to state 203
+
+    table_exp    转到状态338
+    from_clause  转到状态205
+
+
+状态 303
+
+  147 between_predicate: scalar_exp NOT BETWEEN scalar_exp AND . scalar_exp
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 64
+
+    scalar_exp     转到状态339
+    atom           转到状态68
+    parameter_ref  转到状态69
+    function_ref   转到状态70
+    literal        转到状态71
+    column_ref     转到状态72
+    parameter      转到状态73
+
+
+状态 304
+
+  157 in_predicate: scalar_exp NOT IN '(' atom_commalist . ')'
+  160 atom_commalist: atom_commalist . ',' atom
+
+    ')'  shift, and go to state 340
+    ','  shift, and go to state 309
+
+
+状态 305
+
+  155 in_predicate: scalar_exp NOT IN '(' subquery . ')'
+
+    ')'  shift, and go to state 341
+
+
+状态 306
+
+  149 like_predicate: scalar_exp NOT LIKE atom opt_escape .
+
+    $default  reduce using rule 149 (like_predicate)
+
+
+状态 307
+
+  148 between_predicate: scalar_exp BETWEEN scalar_exp AND scalar_exp .
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  168           | scalar_exp . '-' scalar_exp
+  169           | scalar_exp . '*' scalar_exp
+  170           | scalar_exp . '/' scalar_exp
+
+    '+'  shift, and go to state 98
+    '-'  shift, and go to state 99
+    '*'  shift, and go to state 100
+    '/'  shift, and go to state 101
+
+    $default  reduce using rule 148 (between_predicate)
+
+
+状态 308
+
+  158 in_predicate: scalar_exp IN '(' atom_commalist ')' .
+
+    $default  reduce using rule 158 (in_predicate)
+
+
+状态 309
+
+  160 atom_commalist: atom_commalist ',' . atom
+
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+
+    atom           转到状态342
+    parameter_ref  转到状态69
+    literal        转到状态71
+    parameter      转到状态73
+
+
+状态 310
+
+  156 in_predicate: scalar_exp IN '(' subquery ')' .
+
+    $default  reduce using rule 156 (in_predicate)
+
+
+状态 311
+
+  152 opt_escape: ESCAPE atom .
+
+    $default  reduce using rule 152 (opt_escape)
+
+
+状态 312
+
+   90 insert_atom_commalist: insert_atom_commalist ',' insert_atom .
+
+    $default  reduce using rule 90 (insert_atom_commalist)
+
+
+状态 313
+
+  122 table_ref_commalist: table_ref_commalist ',' table_ref .
+
+    $default  reduce using rule 122 (table_ref_commalist)
+
+
+状态 314
+
+  127 opt_group_by_clause: GROUP BY . column_ref_commalist
+
+    NAME  shift, and go to state 54
+
+    column_ref_commalist  转到状态343
+    column_ref            转到状态344
+
+
+状态 315
+
+  131 opt_having_clause: HAVING . search_condition
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    NOT        shift, and go to state 125
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    EXISTS     shift, and go to state 127
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 128
+
+    $default  reduce using rule 132 (search_condition)
+
+    search_condition      转到状态345
+    predicate             转到状态130
+    comparison_predicate  转到状态131
+    between_predicate     转到状态132
+    like_predicate        转到状态133
+    test_for_null         转到状态134
+    in_predicate          转到状态135
+    all_or_any_predicate  转到状态136
+    existence_test        转到状态137
+    scalar_exp            转到状态138
+    atom                  转到状态68
+    parameter_ref         转到状态69
+    function_ref          转到状态70
+    literal               转到状态71
+    column_ref            转到状态139
+    parameter             转到状态73
+
+
+状态 316
+
+  119 table_exp: from_clause opt_where_clause opt_group_by_clause opt_having_clause .
+
+    $default  reduce using rule 119 (table_exp)
+
+
+状态 317
+
+   33 table_constraint_def: CHECK '(' . search_condition ')'
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    NOT        shift, and go to state 125
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    EXISTS     shift, and go to state 127
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 128
+
+    $default  reduce using rule 132 (search_condition)
+
+    search_condition      转到状态346
+    predicate             转到状态130
+    comparison_predicate  转到状态131
+    between_predicate     转到状态132
+    like_predicate        转到状态133
+    test_for_null         转到状态134
+    in_predicate          转到状态135
+    all_or_any_predicate  转到状态136
+    existence_test        转到状态137
+    scalar_exp            转到状态138
+    atom                  转到状态68
+    parameter_ref         转到状态69
+    function_ref          转到状态70
+    literal               转到状态71
+    column_ref            转到状态139
+    parameter             转到状态73
+
+
+状态 318
+
+   31 table_constraint_def: FOREIGN KEY . '(' column_commalist ')' REFERENCES table
+   32                     | FOREIGN KEY . '(' column_commalist ')' REFERENCES table '(' column_commalist ')'
+
+    '('  shift, and go to state 347
+
+
+状态 319
+
+   30 table_constraint_def: PRIMARY KEY . '(' column_commalist ')'
+
+    '('  shift, and go to state 348
+
+
+状态 320
+
+   29 table_constraint_def: UNIQUE '(' . column_commalist ')'
+
+    NAME  shift, and go to state 106
+
+    column_commalist  转到状态349
+    column            转到状态142
+
+
+状态 321
+
+   12 base_table_def: CREATE TABLE table '(' base_table_element_commalist ')' .
+
+    $default  reduce using rule 12 (base_table_def)
+
+
+状态 322
+
+   14 base_table_element_commalist: base_table_element_commalist ',' . base_table_element
+
+    NAME     shift, and go to state 106
+    CHECK    shift, and go to state 286
+    FOREIGN  shift, and go to state 287
+    PRIMARY  shift, and go to state 288
+    UNIQUE   shift, and go to state 289
+
+    base_table_element    转到状态350
+    column_def            转到状态292
+    table_constraint_def  转到状态293
+    column                转到状态294
+
+
+状态 323
+
+  197 data_type: CHARACTER .
+  198          | CHARACTER . '(' INTNUM ')'
+
+    '('  shift, and go to state 351
+
+    $default  reduce using rule 197 (data_type)
+
+
+状态 324
+
+  202 data_type: DECIMAL .
+  203          | DECIMAL . '(' INTNUM ')'
+  204          | DECIMAL . '(' INTNUM ',' INTNUM ')'
+
+    '('  shift, and go to state 352
+
+    $default  reduce using rule 202 (data_type)
+
+
+状态 325
+
+  210 data_type: DOUBLE . PRECISION
+
+    PRECISION  shift, and go to state 353
+
+
+状态 326
+
+  207 data_type: FLOAT .
+  208          | FLOAT . '(' INTNUM ')'
+
+    '('  shift, and go to state 354
+
+    $default  reduce using rule 207 (data_type)
+
+
+状态 327
+
+  205 data_type: INTEGER .
+
+    $default  reduce using rule 205 (data_type)
+
+
+状态 328
+
+  199 data_type: NUMERIC .
+  200          | NUMERIC . '(' INTNUM ')'
+  201          | NUMERIC . '(' INTNUM ',' INTNUM ')'
+
+    '('  shift, and go to state 355
+
+    $default  reduce using rule 199 (data_type)
+
+
+状态 329
+
+  209 data_type: REAL .
+
+    $default  reduce using rule 209 (data_type)
+
+
+状态 330
+
+  206 data_type: SMALLINT .
+
+    $default  reduce using rule 206 (data_type)
+
+
+状态 331
+
+   17 column_def: column data_type . column_def_opt_list
+
+    $default  reduce using rule 18 (column_def_opt_list)
+
+    column_def_opt_list  转到状态356
+
+
+状态 332
+
+   36 view_def: CREATE VIEW table opt_column_commalist AS query_spec . opt_with_check_option
+
+    WITH  shift, and go to state 357
+
+    $default  reduce using rule 37 (opt_with_check_option)
+
+    opt_with_check_option  转到状态358
+
+
+状态 333
+
+   56 grantee: PUBLIC .
+
+    $default  reduce using rule 56 (grantee)
+
+
+状态 334
+
+   41 privilege_def: GRANT privileges ON table TO grantee_commalist . opt_with_grant_option
+   55 grantee_commalist: grantee_commalist . ',' grantee
+
+    WITH  shift, and go to state 359
+    ','   shift, and go to state 360
+
+    $default  reduce using rule 42 (opt_with_grant_option)
+
+    opt_with_grant_option  转到状态361
+
+
+状态 335
+
+   54 grantee_commalist: grantee .
+
+    $default  reduce using rule 54 (grantee_commalist)
+
+
+状态 336
+
+   57 grantee: user .
+
+    $default  reduce using rule 57 (grantee)
+
+
+状态 337
+
+   63 ordering_spec_commalist: ordering_spec_commalist ',' ordering_spec .
+
+    $default  reduce using rule 63 (ordering_spec_commalist)
+
+
+状态 338
+
+  166 subquery: '(' SELECT opt_all_distinct selection table_exp . ')'
+
+    ')'  shift, and go to state 362
+
+
+状态 339
+
+  147 between_predicate: scalar_exp NOT BETWEEN scalar_exp AND scalar_exp .
+  167 scalar_exp: scalar_exp . '+' scalar_exp
+  168           | scalar_exp . '-' scalar_exp
+  169           | scalar_exp . '*' scalar_exp
+  170           | scalar_exp . '/' scalar_exp
+
+    '+'  shift, and go to state 98
+    '-'  shift, and go to state 99
+    '*'  shift, and go to state 100
+    '/'  shift, and go to state 101
+
+    $default  reduce using rule 147 (between_predicate)
+
+
+状态 340
+
+  157 in_predicate: scalar_exp NOT IN '(' atom_commalist ')' .
+
+    $default  reduce using rule 157 (in_predicate)
+
+
+状态 341
+
+  155 in_predicate: scalar_exp NOT IN '(' subquery ')' .
+
+    $default  reduce using rule 155 (in_predicate)
+
+
+状态 342
+
+  160 atom_commalist: atom_commalist ',' atom .
+
+    $default  reduce using rule 160 (atom_commalist)
+
+
+状态 343
+
+  127 opt_group_by_clause: GROUP BY column_ref_commalist .
+  129 column_ref_commalist: column_ref_commalist . ',' column_ref
+
+    ','  shift, and go to state 363
+
+    $default  reduce using rule 127 (opt_group_by_clause)
+
+
+状态 344
+
+  128 column_ref_commalist: column_ref .
+
+    $default  reduce using rule 128 (column_ref_commalist)
+
+
+状态 345
+
+  131 opt_having_clause: HAVING search_condition .
+  133 search_condition: search_condition . OR search_condition
+  134                 | search_condition . AND search_condition
+
+    OR   shift, and go to state 186
+    AND  shift, and go to state 187
+
+    $default  reduce using rule 131 (opt_having_clause)
+
+
+状态 346
+
+   33 table_constraint_def: CHECK '(' search_condition . ')'
+  133 search_condition: search_condition . OR search_condition
+  134                 | search_condition . AND search_condition
+
+    OR   shift, and go to state 186
+    AND  shift, and go to state 187
+    ')'  shift, and go to state 364
+
+
+状态 347
+
+   31 table_constraint_def: FOREIGN KEY '(' . column_commalist ')' REFERENCES table
+   32                     | FOREIGN KEY '(' . column_commalist ')' REFERENCES table '(' column_commalist ')'
+
+    NAME  shift, and go to state 106
+
+    column_commalist  转到状态365
+    column            转到状态142
+
+
+状态 348
+
+   30 table_constraint_def: PRIMARY KEY '(' . column_commalist ')'
+
+    NAME  shift, and go to state 106
+
+    column_commalist  转到状态366
+    column            转到状态142
+
+
+状态 349
+
+   29 table_constraint_def: UNIQUE '(' column_commalist . ')'
+   35 column_commalist: column_commalist . ',' column
+
+    ')'  shift, and go to state 367
+    ','  shift, and go to state 196
+
+
+状态 350
+
+   14 base_table_element_commalist: base_table_element_commalist ',' base_table_element .
+
+    $default  reduce using rule 14 (base_table_element_commalist)
+
+
+状态 351
+
+  198 data_type: CHARACTER '(' . INTNUM ')'
+
+    INTNUM  shift, and go to state 368
+
+
+状态 352
+
+  203 data_type: DECIMAL '(' . INTNUM ')'
+  204          | DECIMAL '(' . INTNUM ',' INTNUM ')'
+
+    INTNUM  shift, and go to state 369
+
+
+状态 353
+
+  210 data_type: DOUBLE PRECISION .
+
+    $default  reduce using rule 210 (data_type)
+
+
+状态 354
+
+  208 data_type: FLOAT '(' . INTNUM ')'
+
+    INTNUM  shift, and go to state 370
+
+
+状态 355
+
+  200 data_type: NUMERIC '(' . INTNUM ')'
+  201          | NUMERIC '(' . INTNUM ',' INTNUM ')'
+
+    INTNUM  shift, and go to state 371
+
+
+状态 356
+
+   17 column_def: column data_type column_def_opt_list .
+   19 column_def_opt_list: column_def_opt_list . column_def_opt
+
+    NOT         shift, and go to state 372
+    CHECK       shift, and go to state 373
+    DEFAULT     shift, and go to state 374
+    REFERENCES  shift, and go to state 375
+
+    $default  reduce using rule 17 (column_def)
+
+    column_def_opt  转到状态376
+
+
+状态 357
+
+   38 opt_with_check_option: WITH . CHECK OPTION
+
+    CHECK  shift, and go to state 377
+
+
+状态 358
+
+   36 view_def: CREATE VIEW table opt_column_commalist AS query_spec opt_with_check_option .
+
+    $default  reduce using rule 36 (view_def)
+
+
+状态 359
+
+   43 opt_with_grant_option: WITH . GRANT OPTION
+
+    GRANT  shift, and go to state 378
+
+
+状态 360
+
+   55 grantee_commalist: grantee_commalist ',' . grantee
+
+    NAME    shift, and go to state 81
+    PUBLIC  shift, and go to state 333
+
+    grantee  转到状态379
+    user     转到状态336
+
+
+状态 361
+
+   41 privilege_def: GRANT privileges ON table TO grantee_commalist opt_with_grant_option .
+
+    $default  reduce using rule 41 (privilege_def)
+
+
+状态 362
+
+  166 subquery: '(' SELECT opt_all_distinct selection table_exp ')' .
+
+    $default  reduce using rule 166 (subquery)
+
+
+状态 363
+
+  129 column_ref_commalist: column_ref_commalist ',' . column_ref
+
+    NAME  shift, and go to state 54
+
+    column_ref  转到状态380
+
+
+状态 364
+
+   33 table_constraint_def: CHECK '(' search_condition ')' .
+
+    $default  reduce using rule 33 (table_constraint_def)
+
+
+状态 365
+
+   31 table_constraint_def: FOREIGN KEY '(' column_commalist . ')' REFERENCES table
+   32                     | FOREIGN KEY '(' column_commalist . ')' REFERENCES table '(' column_commalist ')'
+   35 column_commalist: column_commalist . ',' column
+
+    ')'  shift, and go to state 381
+    ','  shift, and go to state 196
+
+
+状态 366
+
+   30 table_constraint_def: PRIMARY KEY '(' column_commalist . ')'
+   35 column_commalist: column_commalist . ',' column
+
+    ')'  shift, and go to state 382
+    ','  shift, and go to state 196
+
+
+状态 367
+
+   29 table_constraint_def: UNIQUE '(' column_commalist ')' .
+
+    $default  reduce using rule 29 (table_constraint_def)
+
+
+状态 368
+
+  198 data_type: CHARACTER '(' INTNUM . ')'
+
+    ')'  shift, and go to state 383
+
+
+状态 369
+
+  203 data_type: DECIMAL '(' INTNUM . ')'
+  204          | DECIMAL '(' INTNUM . ',' INTNUM ')'
+
+    ')'  shift, and go to state 384
+    ','  shift, and go to state 385
+
+
+状态 370
+
+  208 data_type: FLOAT '(' INTNUM . ')'
+
+    ')'  shift, and go to state 386
+
+
+状态 371
+
+  200 data_type: NUMERIC '(' INTNUM . ')'
+  201          | NUMERIC '(' INTNUM . ',' INTNUM ')'
+
+    ')'  shift, and go to state 387
+    ','  shift, and go to state 388
+
+
+状态 372
+
+   20 column_def_opt: NOT . NULLX
+   21               | NOT . NULLX UNIQUE
+   22               | NOT . NULLX PRIMARY KEY
+
+    NULLX  shift, and go to state 389
+
+
+状态 373
+
+   26 column_def_opt: CHECK . '(' search_condition ')'
+
+    '('  shift, and go to state 390
+
+
+状态 374
+
+   23 column_def_opt: DEFAULT . literal
+   24               | DEFAULT . NULLX
+   25               | DEFAULT . USER
+
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    NULLX      shift, and go to state 391
+    USER       shift, and go to state 392
+
+    literal  转到状态393
+
+
+状态 375
+
+   27 column_def_opt: REFERENCES . table
+   28               | REFERENCES . table '(' column_commalist ')'
+
+    NAME  shift, and go to state 42
+
+    table  转到状态394
+
+
+状态 376
+
+   19 column_def_opt_list: column_def_opt_list column_def_opt .
+
+    $default  reduce using rule 19 (column_def_opt_list)
+
+
+状态 377
+
+   38 opt_with_check_option: WITH CHECK . OPTION
+
+    OPTION  shift, and go to state 395
+
+
+状态 378
+
+   43 opt_with_grant_option: WITH GRANT . OPTION
+
+    OPTION  shift, and go to state 396
+
+
+状态 379
+
+   55 grantee_commalist: grantee_commalist ',' grantee .
+
+    $default  reduce using rule 55 (grantee_commalist)
+
+
+状态 380
+
+  129 column_ref_commalist: column_ref_commalist ',' column_ref .
+
+    $default  reduce using rule 129 (column_ref_commalist)
+
+
+状态 381
+
+   31 table_constraint_def: FOREIGN KEY '(' column_commalist ')' . REFERENCES table
+   32                     | FOREIGN KEY '(' column_commalist ')' . REFERENCES table '(' column_commalist ')'
+
+    REFERENCES  shift, and go to state 397
+
+
+状态 382
+
+   30 table_constraint_def: PRIMARY KEY '(' column_commalist ')' .
+
+    $default  reduce using rule 30 (table_constraint_def)
+
+
+状态 383
+
+  198 data_type: CHARACTER '(' INTNUM ')' .
+
+    $default  reduce using rule 198 (data_type)
+
+
+状态 384
+
+  203 data_type: DECIMAL '(' INTNUM ')' .
+
+    $default  reduce using rule 203 (data_type)
+
+
+状态 385
+
+  204 data_type: DECIMAL '(' INTNUM ',' . INTNUM ')'
+
+    INTNUM  shift, and go to state 398
+
+
+状态 386
+
+  208 data_type: FLOAT '(' INTNUM ')' .
+
+    $default  reduce using rule 208 (data_type)
+
+
+状态 387
+
+  200 data_type: NUMERIC '(' INTNUM ')' .
+
+    $default  reduce using rule 200 (data_type)
+
+
+状态 388
+
+  201 data_type: NUMERIC '(' INTNUM ',' . INTNUM ')'
+
+    INTNUM  shift, and go to state 399
+
+
+状态 389
+
+   20 column_def_opt: NOT NULLX .
+   21               | NOT NULLX . UNIQUE
+   22               | NOT NULLX . PRIMARY KEY
+
+    PRIMARY  shift, and go to state 400
+    UNIQUE   shift, and go to state 401
+
+    $default  reduce using rule 20 (column_def_opt)
+
+
+状态 390
+
+   26 column_def_opt: CHECK '(' . search_condition ')'
+
+    NAME       shift, and go to state 54
+    STRING     shift, and go to state 55
+    INTNUM     shift, and go to state 56
+    APPROXNUM  shift, and go to state 57
+    NOT        shift, and go to state 125
+    '+'        shift, and go to state 58
+    '-'        shift, and go to state 59
+    AMMSC      shift, and go to state 61
+    EXISTS     shift, and go to state 127
+    PARAMETER  shift, and go to state 62
+    USER       shift, and go to state 63
+    '('        shift, and go to state 128
+
+    $default  reduce using rule 132 (search_condition)
+
+    search_condition      转到状态402
+    predicate             转到状态130
+    comparison_predicate  转到状态131
+    between_predicate     转到状态132
+    like_predicate        转到状态133
+    test_for_null         转到状态134
+    in_predicate          转到状态135
+    all_or_any_predicate  转到状态136
+    existence_test        转到状态137
+    scalar_exp            转到状态138
+    atom                  转到状态68
+    parameter_ref         转到状态69
+    function_ref          转到状态70
+    literal               转到状态71
+    column_ref            转到状态139
+    parameter             转到状态73
+
+
+状态 391
+
+   24 column_def_opt: DEFAULT NULLX .
+
+    $default  reduce using rule 24 (column_def_opt)
+
+
+状态 392
+
+   25 column_def_opt: DEFAULT USER .
+
+    $default  reduce using rule 25 (column_def_opt)
+
+
+状态 393
+
+   23 column_def_opt: DEFAULT literal .
+
+    $default  reduce using rule 23 (column_def_opt)
+
+
+状态 394
+
+   27 column_def_opt: REFERENCES table .
+   28               | REFERENCES table . '(' column_commalist ')'
+
+    '('  shift, and go to state 403
+
+    $default  reduce using rule 27 (column_def_opt)
+
+
+状态 395
+
+   38 opt_with_check_option: WITH CHECK OPTION .
+
+    $default  reduce using rule 38 (opt_with_check_option)
+
+
+状态 396
+
+   43 opt_with_grant_option: WITH GRANT OPTION .
+
+    $default  reduce using rule 43 (opt_with_grant_option)
+
+
+状态 397
+
+   31 table_constraint_def: FOREIGN KEY '(' column_commalist ')' REFERENCES . table
+   32                     | FOREIGN KEY '(' column_commalist ')' REFERENCES . table '(' column_commalist ')'
+
+    NAME  shift, and go to state 42
+
+    table  转到状态404
+
+
+状态 398
+
+  204 data_type: DECIMAL '(' INTNUM ',' INTNUM . ')'
+
+    ')'  shift, and go to state 405
+
+
+状态 399
+
+  201 data_type: NUMERIC '(' INTNUM ',' INTNUM . ')'
+
+    ')'  shift, and go to state 406
+
+
+状态 400
+
+   22 column_def_opt: NOT NULLX PRIMARY . KEY
+
+    KEY  shift, and go to state 407
+
+
+状态 401
+
+   21 column_def_opt: NOT NULLX UNIQUE .
+
+    $default  reduce using rule 21 (column_def_opt)
+
+
+状态 402
+
+   26 column_def_opt: CHECK '(' search_condition . ')'
+  133 search_condition: search_condition . OR search_condition
+  134                 | search_condition . AND search_condition
+
+    OR   shift, and go to state 186
+    AND  shift, and go to state 187
+    ')'  shift, and go to state 408
+
+
+状态 403
+
+   28 column_def_opt: REFERENCES table '(' . column_commalist ')'
+
+    NAME  shift, and go to state 106
+
+    column_commalist  转到状态409
+    column            转到状态142
+
+
+状态 404
+
+   31 table_constraint_def: FOREIGN KEY '(' column_commalist ')' REFERENCES table .
+   32                     | FOREIGN KEY '(' column_commalist ')' REFERENCES table . '(' column_commalist ')'
+
+    '('  shift, and go to state 410
+
+    $default  reduce using rule 31 (table_constraint_def)
+
+
+状态 405
+
+  204 data_type: DECIMAL '(' INTNUM ',' INTNUM ')' .
+
+    $default  reduce using rule 204 (data_type)
+
+
+状态 406
+
+  201 data_type: NUMERIC '(' INTNUM ',' INTNUM ')' .
+
+    $default  reduce using rule 201 (data_type)
+
+
+状态 407
+
+   22 column_def_opt: NOT NULLX PRIMARY KEY .
+
+    $default  reduce using rule 22 (column_def_opt)
+
+
+状态 408
+
+   26 column_def_opt: CHECK '(' search_condition ')' .
+
+    $default  reduce using rule 26 (column_def_opt)
+
+
+状态 409
+
+   28 column_def_opt: REFERENCES table '(' column_commalist . ')'
+   35 column_commalist: column_commalist . ',' column
+
+    ')'  shift, and go to state 411
+    ','  shift, and go to state 196
+
+
+状态 410
+
+   32 table_constraint_def: FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' . column_commalist ')'
+
+    NAME  shift, and go to state 106
+
+    column_commalist  转到状态412
+    column            转到状态142
+
+
+状态 411
+
+   28 column_def_opt: REFERENCES table '(' column_commalist ')' .
+
+    $default  reduce using rule 28 (column_def_opt)
+
+
+状态 412
+
+   32 table_constraint_def: FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist . ')'
+   35 column_commalist: column_commalist . ',' column
+
+    ')'  shift, and go to state 413
+    ','  shift, and go to state 196
+
+
+状态 413
+
+   32 table_constraint_def: FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')' .
+
+    $default  reduce using rule 32 (table_constraint_def)
